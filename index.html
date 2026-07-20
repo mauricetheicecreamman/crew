@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>In Your Head</title>
+  <style>
+    :root { --ink:#25312e; --muted:#6d7874; --paper:#f5f1e8; --card:#fffdf8; --sage:#78958a; --sage-dark:#496a5e; --user:#dcebe5; --line:#dedbd3; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; color:var(--ink); background:radial-gradient(circle at top,#e8efe9 0,#d7e1db 35%,#c6d1cb 100%); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .app { width:min(100%,680px); height:min(860px,calc(100vh - 48px)); min-height:580px; display:flex; flex-direction:column; overflow:hidden; border:1px solid rgba(37,49,46,.12); border-radius:26px; background:var(--card); box-shadow:0 24px 70px rgba(35,50,44,.22); }
+    header { padding:22px 24px 18px; text-align:center; background:linear-gradient(180deg,#fdfcf7,#f5f3eb); border-bottom:1px solid var(--line); }
+    .portrait { width:120px; height:120px; object-fit:cover; border-radius:50%; border:5px solid white; box-shadow:0 8px 24px rgba(37,49,46,.2); }
+    h1 { margin:12px 0 2px; font-family:Georgia,serif; font-size:24px; font-weight:600; }
+    .status { margin:0; color:var(--muted); font-size:13px; }
+    .status::before { content:""; display:inline-block; width:8px; height:8px; margin-right:7px; border-radius:50%; background:#62a57d; }
+    #chat { flex:1; overflow-y:auto; padding:26px 24px 18px; scroll-behavior:smooth; }
+    .row { display:flex; margin:0 0 15px; animation:arrive .28s ease-out; }
+    .row.user { justify-content:flex-end; }
+    .bubble { max-width:78%; padding:12px 15px; line-height:1.45; border-radius:18px 18px 18px 5px; background:var(--paper); box-shadow:0 1px 1px rgba(0,0,0,.04); overflow-wrap:anywhere; }
+    .user .bubble { border-radius:18px 18px 5px 18px; background:var(--user); }
+    .typing { display:flex; gap:5px; align-items:center; width:max-content; padding:15px 18px; }
+    .typing i { width:7px; height:7px; border-radius:50%; background:#88928e; animation:bounce 1s infinite ease-in-out; }
+    .typing i:nth-child(2){animation-delay:.14s}.typing i:nth-child(3){animation-delay:.28s}
+    form { display:flex; gap:10px; padding:16px 18px 18px; background:#fff; border-top:1px solid var(--line); }
+    input { min-width:0; flex:1; border:1px solid #c9cec9; border-radius:999px; padding:13px 18px; color:var(--ink); background:#fff; font:inherit; outline:none; }
+    input:focus { border-color:var(--sage); box-shadow:0 0 0 3px rgba(120,149,138,.18); }
+    button { border:0; border-radius:999px; padding:0 20px; color:white; background:var(--sage-dark); font:600 15px inherit; cursor:pointer; transition:.18s; }
+    button:hover { background:#38594d; transform:translateY(-1px); }
+    button:disabled,input:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .ended { padding:12px 18px 18px; color:var(--muted); text-align:center; font-size:13px; background:#fff; }
+    @keyframes arrive { from { opacity:0; transform:translateY(7px); } }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)} }
+    @media (max-width:560px){ body{padding:0}.app{height:100vh;min-height:0;border:0;border-radius:0}.portrait{width:96px;height:96px}#chat{padding:20px 16px}.bubble{max-width:87%} }
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="Therapy chat">
+    <header>
+      <img class="portrait" src="therapist.jpeg" alt="Portrait of the therapist">
+      <h1>Your Therapist</h1>
+      <p class="status" id="status">Online</p>
+    </header>
+    <section id="chat" role="log" aria-live="polite" aria-label="Conversation"></section>
+    <form id="form">
+      <input id="message" autocomplete="off" maxlength="1000" placeholder="Type what’s on your mind…" aria-label="Your response" required>
+      <button id="send" type="submit">Send</button>
+    </form>
+  </main>
+  <script>
+    const replies = [
+      "Tell me more",
+      "And how does that make you feel?",
+      "Why could that be the case?",
+      "Explore that for me",
+      "Does that remind you of anything?",
+      "How does it feel to sit in that?",
+      "Mmm. Yeah.",
+      "Where does that come from do you think?",
+      "Would you say this is something you feel regularly?",
+      "Sadly our time is up for this week. See you next week."
+    ];
+    const chat=document.querySelector('#chat'), form=document.querySelector('#form'), input=document.querySelector('#message'), send=document.querySelector('#send'), status=document.querySelector('#status');
+    let nextReply=0, waiting=false;
+    function scroll(){ chat.scrollTop=chat.scrollHeight; }
+    function addMessage(text,who){ const row=document.createElement('div'); row.className=`row ${who}`; const bubble=document.createElement('div'); bubble.className='bubble'; bubble.textContent=text; row.append(bubble); chat.append(row); scroll(); }
+    function showTyping(){ const row=document.createElement('div'); row.className='row therapist'; row.id='typing'; row.innerHTML='<div class="bubble typing" aria-label="Therapist is typing"><i></i><i></i><i></i></div>'; chat.append(row); scroll(); }
+    function finish(){ input.disabled=true; send.disabled=true; status.textContent='Session ended'; form.insertAdjacentHTML('afterend','<div class="ended">Your session has ended.</div>'); }
+    form.addEventListener('submit',event=>{ event.preventDefault(); const text=input.value.trim(); if(!text||waiting||nextReply>=replies.length)return; addMessage(text,'user'); input.value=''; waiting=true; input.disabled=true; send.disabled=true; status.textContent='Typing…'; showTyping(); window.setTimeout(()=>{ document.querySelector('#typing')?.remove(); addMessage(replies[nextReply],'therapist'); nextReply++; waiting=false; if(nextReply===replies.length){ finish(); } else { input.disabled=false; send.disabled=false; status.textContent='Online'; input.focus(); } },2000); });
+    addMessage("What’s the weather like in your head today?",'therapist');
+    input.focus();
+  </script>
+</body>
+</html>
