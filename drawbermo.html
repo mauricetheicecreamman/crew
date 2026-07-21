@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#173b3f" />
+  <title>Draw Bermondsey</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.0/dist/leaflet-geoman.css"
+  />
+
+  <style>
+    :root {
+      --ink: #173b3f;
+      --ink-muted: #51676a;
+      --paper: #f6f3ec;
+      --card: #fffdf8;
+      --line: #d8d3c7;
+      --accent: #e2553f;
+      --accent-dark: #bd3e2c;
+      --map-fill: #e2553f;
+      --focus: #2d6cdf;
+      --success: #237a57;
+      --shadow: 0 12px 35px rgba(23, 59, 63, 0.12);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    button,
+    a { font: inherit; }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .app-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(540px, 1fr);
+    }
+
+    .masthead {
+      padding: 22px clamp(18px, 4vw, 54px) 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--line);
+      background: rgba(246, 243, 236, 0.95);
+    }
+
+    .brand-kicker {
+      margin: 0 0 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--accent-dark);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    .masthead-copy {
+      max-width: 760px;
+    }
+
+    .masthead-copy p:last-child {
+      margin: 13px 0 0;
+      max-width: 680px;
+      color: var(--ink-muted);
+      line-height: 1.55;
+      font-size: clamp(0.97rem, 1.6vw, 1.08rem);
+    }
+
+    .prototype-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--ink-muted);
+      font-size: 0.78rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .prototype-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .workspace {
+      min-height: 0;
+      padding: clamp(12px, 2vw, 24px);
+      display: grid;
+      grid-template-columns: minmax(270px, 350px) minmax(0, 1fr);
+      gap: clamp(12px, 2vw, 22px);
+    }
+
+    .control-panel,
+    .map-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .control-panel {
+      padding: clamp(18px, 2.5vw, 28px);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-label {
+      margin: 0 0 7px;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 850;
+      color: var(--accent-dark);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+    }
+
+    .question-copy {
+      margin: 10px 0 0;
+      color: var(--ink-muted);
+      line-height: 1.55;
+    }
+
+    .instruction-card {
+      padding: 14px 15px;
+      border: 1px solid #ead5cf;
+      border-radius: 14px;
+      background: #fff4ef;
+    }
+
+    .instruction-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--accent-dark);
+      font-size: 0.91rem;
+    }
+
+    .instruction-card p {
+      margin: 0;
+      color: #664a43;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .classification {
+      margin: 0;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #faf8f2;
+    }
+
+    .classification legend {
+      padding: 0 5px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .classification-note {
+      margin: 2px 0 11px;
+      color: var(--ink-muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .radio-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 36px;
+      cursor: pointer;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .radio-option input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent-dark);
+      flex: 0 0 auto;
+    }
+
+    .radio-option:has(input:focus-visible) {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .status {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #faf8f2;
+      color: var(--ink-muted);
+      line-height: 1.35;
+      font-size: 0.9rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a3acad;
+      flex: 0 0 auto;
+      box-shadow: 0 0 0 4px rgba(163, 172, 173, 0.16);
+    }
+
+    .status[data-state="drawing"] .status-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(226, 85, 63, 0.15);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status[data-state="ready"] .status-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(35, 122, 87, 0.14);
+    }
+
+    .status[data-state="error"] {
+      border-color: #e4bcb5;
+      background: #fff5f2;
+      color: #7d3128;
+    }
+
+    .status[data-state="error"] .status-dot {
+      background: #b83e2e;
+      box-shadow: 0 0 0 4px rgba(184, 62, 46, 0.14);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.8); opacity: 0.65; }
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 13px;
+      min-height: 48px;
+      padding: 12px 15px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 120ms ease, background 120ms ease, opacity 120ms ease;
+    }
+
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+
+    .btn-secondary {
+      background: var(--ink);
+      color: white;
+    }
+
+    .btn-tertiary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: #9d3023;
+      border: 1px solid #e4bcb5;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.38;
+    }
+
+    .secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .privacy-note {
+      margin-top: auto;
+      padding-top: 17px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .privacy-note strong { color: var(--ink); }
+
+    .map-card {
+      position: relative;
+      min-height: 540px;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 540px;
+      background: #e8ece8;
+    }
+
+    .map-tip {
+      position: absolute;
+      z-index: 800;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(500px, calc(100% - 96px));
+      padding: 10px 13px;
+      border-radius: 12px;
+      background: rgba(23, 59, 63, 0.94);
+      color: white;
+      text-align: center;
+      font-size: 0.83rem;
+      line-height: 1.35;
+      box-shadow: 0 8px 24px rgba(23, 59, 63, 0.25);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 150ms ease;
+    }
+
+    .map-tip.visible { opacity: 1; }
+
+    .leaflet-control-zoom a {
+      color: var(--ink) !important;
+      border: 0 !important;
+    }
+
+    .leaflet-control-zoom {
+      border: 1px solid var(--line) !important;
+      box-shadow: 0 6px 20px rgba(23, 59, 63, 0.12) !important;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px !important;
+    }
+
+    .leaflet-div-icon.leaflet-editing-icon,
+    .marker-icon {
+      border-radius: 50%;
+    }
+
+    .noscript {
+      margin: 20px;
+      padding: 20px;
+      border: 1px solid #d88;
+      background: #fff;
+    }
+
+    @media (max-width: 840px) {
+      .app-shell { grid-template-rows: auto auto; }
+
+      .masthead {
+        padding: 18px 17px 15px;
+        gap: 12px;
+      }
+
+      .prototype-badge { display: none; }
+
+      .workspace {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .control-panel {
+        padding: 17px;
+        gap: 14px;
+      }
+
+      .map-card,
+      #map {
+        min-height: 62dvh;
+        height: 62dvh;
+      }
+
+      .control-panel { order: 1; }
+      .map-card { order: 2; }
+
+      .privacy-note { margin-top: 4px; }
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 2.25rem; }
+      .masthead-copy p:last-child { font-size: 0.92rem; }
+      .secondary-actions { grid-template-columns: 1fr; }
+      .map-tip { width: calc(100% - 70px); font-size: 0.77rem; }
+      .leaflet-control-attribution { max-width: 230px; }
+    }
+  </style>
+</head>
+<body>
+  <noscript>
+    <div class="noscript">This prototype needs JavaScript enabled to display the map.</div>
+  </noscript>
+
+  <main class="app-shell">
+    <header class="masthead">
+      <div class="masthead-copy">
+        <p class="brand-kicker">Neighbourhood boundaries project</p>
+        <h1>Draw Bermondsey</h1>
+        <p>
+          Draw the boundary of the area you personally consider to be Bermondsey.
+          There is no officially correct answer.
+        </p>
+      </div>
+      <span class="prototype-badge">Email pilot</span>
+    </header>
+
+    <section class="workspace" aria-label="Boundary drawing workspace">
+      <aside class="control-panel">
+        <div>
+          <p class="step-label">One simple task</p>
+          <h2>Where does Bermondsey end?</h2>
+          <p class="question-copy">
+            Include anywhere you would normally describe as <strong>“in Bermondsey”</strong>.
+            You can adjust the shape before emailing it to the project inbox.
+          </p>
+        </div>
+
+        <div class="instruction-card">
+          <strong>How to draw</strong>
+          <p>
+            Select <em>Draw boundary</em>, then tap or click around the edge of the area.
+            Finish by selecting your first point again.
+          </p>
+        </div>
+
+        <fieldset class="classification">
+          <legend>What is your relationship with Bermondsey?</legend>
+          <p class="classification-note">Choose one answer. This will be included with your boundary.</p>
+          <div class="radio-list">
+            <label class="radio-option"><input type="radio" name="relationship" value="Live here now" /> <span>Live here now</span></label>
+            <label class="radio-option"><input type="radio" name="relationship" value="Previously lived here" /> <span>Previously lived here</span></label>
+            <label class="radio-option"><input type="radio" name="relationship" value="Work here" /> <span>Work here</span></label>
+            <label class="radio-option"><input type="radio" name="relationship" value="Regularly visit" /> <span>Regularly visit</span></label>
+            <label class="radio-option"><input type="radio" name="relationship" value="Other connection" /> <span>Other connection</span></label>
+            <label class="radio-option"><input type="radio" name="relationship" value="No real connection" /> <span>No real connection</span></label>
+          </div>
+        </fieldset>
+
+        <div id="status" class="status" data-state="idle" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="statusText">No boundary drawn yet.</span>
+        </div>
+
+        <div class="button-stack">
+          <button id="drawBtn" class="btn btn-primary" type="button">Draw boundary</button>
+          <button id="editBtn" class="btn btn-secondary" type="button" disabled>Edit boundary</button>
+
+          <div class="secondary-actions">
+            <button id="clearBtn" class="btn btn-danger" type="button" disabled>Clear</button>
+            <button id="emailBtn" class="btn btn-tertiary" type="button" disabled>
+              Email boundary
+            </button>
+          </div>
+        </div>
+
+        <p class="privacy-note">
+          <strong>Email pilot:</strong> submitting sends your drawn boundary as a GeoJSON
+          attachment to the project inbox via FormSubmit. No copy is stored by this page.
+        </p>
+      </aside>
+
+      <div class="map-card">
+        <div id="map" role="application" aria-label="Interactive map for drawing Bermondsey's boundary"></div>
+        <div id="mapTip" class="map-tip">Tap around the boundary. Select the first point to finish.</div>
+      </div>
+    </section>
+  </main>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.0/dist/leaflet-geoman.min.js"></script>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const els = {
+        draw: document.getElementById("drawBtn"),
+        edit: document.getElementById("editBtn"),
+        clear: document.getElementById("clearBtn"),
+        email: document.getElementById("emailBtn"),
+        status: document.getElementById("status"),
+        statusText: document.getElementById("statusText"),
+        mapTip: document.getElementById("mapTip"),
+        relationships: Array.from(document.querySelectorAll('input[name="relationship"]'))
+      };
+
+      let boundaryLayer = null;
+      let isEditing = false;
+      let isDrawing = false;
+      let isSending = false;
+
+      const DESTINATION_EMAIL = "mauriceicecreamman@gmail.com";
+
+      const map = L.map("map", {
+        zoomControl: true,
+        attributionControl: true,
+        minZoom: 11,
+        maxZoom: 19
+      });
+
+      // Deliberately broad view: Thames to the north, Peckham/New Cross to the south,
+      // Borough to the west and Deptford/Surrey Quays to the east.
+      const studyBounds = L.latLngBounds(
+        [51.4625, -0.128],
+        [51.5175, -0.014]
+      );
+      map.fitBounds(studyBounds, { padding: [16, 16] });
+      map.setMaxBounds(studyBounds.pad(0.45));
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      map.pm.setGlobalOptions({
+        snappable: false,
+        allowSelfIntersection: false,
+        continueDrawing: false,
+        pathOptions: {
+          color: "#bd3e2c",
+          weight: 3,
+          opacity: 1,
+          fillColor: "#e2553f",
+          fillOpacity: 0.22
+        }
+      });
+
+      function setStatus(message, state = "idle") {
+        els.statusText.textContent = message;
+        els.status.dataset.state = state;
+      }
+
+      function setTip(visible, message) {
+        if (message) els.mapTip.textContent = message;
+        els.mapTip.classList.toggle("visible", visible);
+      }
+
+      function getRelationship() {
+        const selected = els.relationships.find((input) => input.checked);
+        return selected ? selected.value : "";
+      }
+
+      function updateButtons() {
+        const hasBoundary = Boolean(boundaryLayer);
+        const hasRelationship = Boolean(getRelationship());
+        els.draw.disabled = hasBoundary || isDrawing;
+        els.edit.disabled = !hasBoundary || isDrawing;
+        els.clear.disabled = !hasBoundary && !isDrawing;
+        els.email.disabled = !hasBoundary || !hasRelationship || isDrawing || isSending;
+        els.draw.disabled = els.draw.disabled || isSending;
+        els.edit.disabled = els.edit.disabled || isSending;
+        els.clear.disabled = els.clear.disabled || isSending;
+        els.edit.textContent = isEditing ? "Finish editing" : "Edit boundary";
+        els.email.textContent = isSending ? "Sending…" : "Email boundary";
+        els.email.setAttribute("aria-busy", String(isSending));
+      }
+
+      function stopEditing() {
+        if (boundaryLayer && boundaryLayer.pm.enabled()) {
+          boundaryLayer.pm.disable();
+        }
+        isEditing = false;
+        setTip(false);
+        if (boundaryLayer) {
+          setStatus("Boundary ready. Edit it or email it to the project inbox.", "ready");
+        }
+        updateButtons();
+      }
+
+      function startDrawing() {
+        if (boundaryLayer || isDrawing) return;
+        stopEditing();
+        isDrawing = true;
+        setStatus("Drawing in progress. Select the first point again to finish.", "drawing");
+        setTip(true, "Tap around the boundary. Select the first point to finish.");
+        updateButtons();
+
+        if (window.matchMedia("(max-width: 840px)").matches) {
+          document.querySelector(".map-card").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        map.pm.enableDraw("Polygon", {
+          snappable: false,
+          allowSelfIntersection: false,
+          tooltips: true,
+          templineStyle: { color: "#bd3e2c", dashArray: "6,6", weight: 2 },
+          hintlineStyle: { color: "#bd3e2c", dashArray: "6,6", weight: 2 },
+          pathOptions: {
+            color: "#bd3e2c",
+            weight: 3,
+            opacity: 1,
+            fillColor: "#e2553f",
+            fillOpacity: 0.22
+          }
+        });
+      }
+
+      function toggleEditing() {
+        if (!boundaryLayer) return;
+
+        if (isEditing) {
+          stopEditing();
+          return;
+        }
+
+        map.pm.disableDraw();
+        isDrawing = false;
+        isEditing = true;
+        boundaryLayer.pm.enable({
+          allowSelfIntersection: false,
+          snappable: false
+        });
+        setStatus("Editing enabled. Drag the round points to reshape the boundary.", "drawing");
+        setTip(true, "Drag the points to adjust the boundary, then select Finish editing.");
+        updateButtons();
+      }
+
+      function clearBoundary() {
+        map.pm.disableDraw();
+        isDrawing = false;
+        stopEditing();
+
+        if (boundaryLayer) {
+          map.removeLayer(boundaryLayer);
+          boundaryLayer = null;
+        }
+
+        setStatus("No boundary drawn yet.", "idle");
+        setTip(false);
+        updateButtons();
+      }
+
+      function buildBoundaryGeoJSON() {
+        const feature = boundaryLayer.toGeoJSON();
+        feature.properties = {
+          project: "Draw Bermondsey",
+          question: "Draw the boundary of the area you personally consider to be Bermondsey.",
+          created_at: new Date().toISOString(),
+          relationship_with_bermondsey: getRelationship(),
+          source: "participant-drawn email pilot"
+        };
+
+        return {
+          type: "FeatureCollection",
+          name: "draw-bermondsey-boundary",
+          features: [feature]
+        };
+      }
+
+      async function emailBoundary() {
+        if (!boundaryLayer || isSending) return;
+
+        const relationship = getRelationship();
+        if (!relationship) {
+          setStatus("Choose your relationship with Bermondsey before emailing the boundary.", "error");
+          return;
+        }
+
+        stopEditing();
+
+        if (window.location.protocol === "file:") {
+          setStatus(
+            "Email sending needs this page to be opened from a web address or local web server. See README.txt for the one-step Windows launcher.",
+            "error"
+          );
+          return;
+        }
+
+        const collection = buildBoundaryGeoJSON();
+        const json = JSON.stringify(collection, null, 2);
+        const timestamp = new Date();
+        const date = timestamp.toISOString().slice(0, 10);
+        const time = timestamp.toISOString().slice(11, 19).replace(/:/g, "-");
+        const filename = `bermondsey-boundary-${date}-${time}.geojson`;
+        const attachment = new File([json], filename, { type: "application/geo+json" });
+
+        const formData = new FormData();
+        formData.append("_subject", "New Draw Bermondsey boundary");
+        formData.append("_template", "table");
+        formData.append("_captcha", "false");
+        formData.append("project", "Draw Bermondsey");
+        formData.append("question", "Where does Bermondsey end?");
+        formData.append("relationship_with_bermondsey", relationship);
+        formData.append("submitted_at", timestamp.toISOString());
+        formData.append("attachment", attachment, filename);
+
+        isSending = true;
+        setStatus("Sending the GeoJSON attachment…", "drawing");
+        setTip(false);
+        updateButtons();
+
+        try {
+          const response = await fetch(
+            `https://formsubmit.co/ajax/${encodeURIComponent(DESTINATION_EMAIL)}`,
+            {
+              method: "POST",
+              headers: { Accept: "application/json" },
+              body: formData
+            }
+          );
+
+          let result = {};
+          try {
+            result = await response.json();
+          } catch (_) {
+            // Some service errors return HTML rather than JSON.
+          }
+
+          const success = response.ok && (result.success === true || result.success === "true");
+          if (!success) {
+            throw new Error(result.message || `Email service returned ${response.status}.`);
+          }
+
+          setStatus(
+            "Boundary sent. Thank you — the GeoJSON attachment has been emailed to the project inbox.",
+            "ready"
+          );
+        } catch (error) {
+          console.error("Boundary email failed:", error);
+          setStatus(
+            "The boundary could not be emailed. Check the internet connection, then try again. The project owner may also need to activate the email form.",
+            "error"
+          );
+        } finally {
+          isSending = false;
+          updateButtons();
+        }
+      }
+
+      map.on("pm:create", (event) => {
+        if (boundaryLayer) {
+          map.removeLayer(boundaryLayer);
+        }
+
+        boundaryLayer = event.layer;
+        isDrawing = false;
+        map.pm.disableDraw();
+
+        boundaryLayer.setStyle({
+          color: "#bd3e2c",
+          weight: 3,
+          opacity: 1,
+          fillColor: "#e2553f",
+          fillOpacity: 0.22
+        });
+
+        setStatus(
+          getRelationship()
+            ? "Boundary drawn. You can edit it or email it now."
+            : "Boundary drawn. Choose your relationship with Bermondsey before emailing it.",
+          "ready"
+        );
+        setTip(false);
+        updateButtons();
+      });
+
+      map.on("pm:drawend", () => {
+        if (!boundaryLayer) {
+          isDrawing = false;
+          setStatus("Drawing cancelled. Select Draw boundary to try again.", "idle");
+          setTip(false);
+          updateButtons();
+        }
+      });
+
+      map.on("pm:drawstart", ({ workingLayer }) => {
+        workingLayer.on("pm:intersect", () => {
+          setStatus("The boundary cannot cross over itself. Adjust the latest point.", "drawing");
+        });
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && isDrawing) {
+          map.pm.disableDraw();
+          isDrawing = false;
+          setStatus("Drawing cancelled. Select Draw boundary to try again.", "idle");
+          setTip(false);
+          updateButtons();
+        }
+      });
+
+      els.draw.addEventListener("click", startDrawing);
+      els.edit.addEventListener("click", toggleEditing);
+      els.clear.addEventListener("click", clearBoundary);
+      els.email.addEventListener("click", emailBoundary);
+      els.relationships.forEach((input) => {
+        input.addEventListener("change", () => {
+          if (boundaryLayer && !isDrawing && !isSending) {
+            setStatus("Boundary ready. Edit it or email it to the project inbox.", "ready");
+          }
+          updateButtons();
+        });
+      });
+
+      updateButtons();
+
+      // Helps Leaflet calculate correctly after responsive layout settles.
+      window.setTimeout(() => map.invalidateSize(), 150);
+      window.addEventListener("resize", () => map.invalidateSize());
+    })();
+  </script>
+</body>
+</html>
