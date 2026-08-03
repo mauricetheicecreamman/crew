@@ -923,7 +923,9 @@ footer p { margin: 0; }
   width: min(1360px, calc(100% - 32px));
   min-height: calc(100vh - 234px);
   display: grid;
-  grid-template-rows: auto auto minmax(185px, 1fr);
+  grid-template-rows: none;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 13px;
   margin: 0 auto;
   padding: 22px 0 28px;
@@ -1060,7 +1062,10 @@ footer p { margin: 0; }
 .actor-figures .awaiting { font: italic 10px Georgia, serif; }
 
 .match-utility-bar {
+  height: 31px;
   min-height: 31px;
+  max-height: 31px;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(170px, auto) minmax(80px, 1fr) auto;
   align-items: center;
