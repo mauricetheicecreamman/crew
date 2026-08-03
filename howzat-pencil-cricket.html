@@ -1060,18 +1060,21 @@ footer p { margin: 0; }
 .actor-figures .awaiting { font: italic 10px Georgia, serif; }
 
 .match-utility-bar {
+  min-height: 31px;
   display: grid;
-  grid-template-columns: minmax(180px, auto) 1fr auto;
+  grid-template-columns: minmax(170px, auto) minmax(80px, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
+  overflow: hidden;
   border: 1px solid var(--rule);
-  padding: 8px 12px;
+  padding: 3px 8px;
   background: rgba(23,63,49,.05);
 }
-.match-utility-bar > strong { color: var(--red); font-size: 8px; letter-spacing: .08em; }
+.match-utility-bar > strong { overflow: hidden; color: var(--red); font-size: 8px; letter-spacing: .08em; text-overflow: ellipsis; white-space: nowrap; }
 .match-utility-bar > span { overflow: hidden; color: #74776f; font: italic 9px Georgia, serif; text-overflow: ellipsis; white-space: nowrap; }
 .match-utility-bar > div { display: flex; gap: 5px; }
-.match-utility-bar button, .series-export-bar button { border: 1px solid var(--rule); padding: 6px 8px; background: rgba(255,255,255,.38); color: var(--green); cursor: pointer; font-size: 7px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.match-utility-bar button, .series-export-bar button { border: 1px solid var(--rule); padding: 4px 7px; background: rgba(255,255,255,.38); color: var(--green); cursor: pointer; font-size: 7px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.series-export-bar button { padding: 6px 8px; }
 .match-utility-bar button:disabled { opacity: .35; cursor: not-allowed; }
 
 .fielding-summary { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 12px; border-top: 1px solid var(--rule); padding-top: 9px; color: #74776f; font: italic 9px Georgia, serif; }
@@ -1448,8 +1451,10 @@ footer p { margin: 0; }
   .series-mvp { display: grid; gap: 4px; }
   .comparison-row { grid-template-columns: 32px 1fr; }
   .comparison-row > span:nth-child(3), .comparison-row > span:nth-child(4) { grid-column: 2; }
-  .match-utility-bar { grid-template-columns: 1fr; gap: 6px; }
-  .match-utility-bar > span { white-space: normal; }
+  .match-utility-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
+  .match-utility-bar > span { display: none; }
+  .match-utility-bar > div { gap: 3px; }
+  .match-utility-bar button { padding-inline: 5px; font-size: 6px; }
   .series-fixtures article { min-height: 52px; }
   .series-team-stats { padding: 14px 10px; }
   .series-archive summary { grid-template-columns: 55px 1fr; gap: 7px; }
