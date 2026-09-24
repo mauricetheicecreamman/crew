@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123f4a">
+  <meta name="description" content="A private, mobile-first match observation tool for mixed adult football.">
+  <title>Mixed Adult Football Observer</title>
+  <style>
+:root {
+  --ink: #17363d;
+  --muted: #64787d;
+  --line: #d9e3e3;
+  --paper: #ffffff;
+  --wash: #f2f7f6;
+  --wash-strong: #e5efed;
+  --brand: #123f4a;
+  --brand-2: #1b6975;
+  --mint: #d4eee5;
+  --mint-ink: #145946;
+  --amber: #fff0ce;
+  --amber-ink: #79510c;
+  --red: #a93636;
+  --red-wash: #fff0ef;
+  --shadow: 0 10px 30px rgba(16, 52, 59, .08);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: #edf3f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+html { min-width: 320px; background: #edf3f2; }
+body { margin: 0; min-height: 100vh; background: #edf3f2; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 3px solid #72c9b0; outline-offset: 2px;
+}
+.app-shell { max-width: 1100px; min-height: 100vh; margin: 0 auto; background: var(--wash); box-shadow: 0 0 50px rgba(18, 63, 74, .07); }
+.topbar { position: sticky; top: 0; z-index: 10; min-height: 68px; padding: 10px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: white; background: var(--brand); }
+.brand { display: flex; align-items: center; gap: 11px; min-width: 0; border: 0; padding: 2px 0; color: inherit; background: transparent; text-align: left; }
+.brand-mark { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border: 2px solid #9bd8c5; border-radius: 50%; color: #9bd8c5; font-size: 16px; line-height: 1; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .01em; }
+.brand small { display: block; margin-top: 2px; color: #c6d9d8; font-size: 11px; }
+.save-status { color: #d5e7e3; font-size: 12px; text-align: right; }
+.save-status.error { color: #ffd1ce; }
+.main-content { min-height: calc(100vh - 68px); padding: 25px 24px 110px; }
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 0 0 20px; }
+.eyebrow { margin: 0 0 5px; color: var(--brand-2); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { margin-bottom: 4px; color: var(--brand); font-size: clamp(25px, 4vw, 34px); letter-spacing: -.035em; line-height: 1.08; }
+h2 { margin-bottom: 12px; color: var(--brand); font-size: 20px; letter-spacing: -.02em; }
+h3 { margin-bottom: 8px; color: var(--brand); font-size: 15px; }
+.lede { max-width: 700px; margin: 7px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.privacy-line { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+.privacy-dot { width: 8px; height: 8px; border-radius: 50%; background: #2a9b72; }
+.card { margin: 0 0 15px; padding: 19px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 2px 8px rgba(13, 53, 59, .025); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.card-header p { max-width: 650px; margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.field { min-width: 0; }
+.field.full { grid-column: 1 / -1; }
+.field label, .label { display: block; margin: 0 0 6px; color: #38575d; font-size: 12px; font-weight: 750; }
+.hint { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], input[type="search"], select, textarea {
+  width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cbd9d8; border-radius: 10px; color: var(--ink); background: #fff;
+}
+input[type="number"] { appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { appearance: none; margin: 0; }
+textarea { min-height: 118px; resize: vertical; line-height: 1.45; }
+.transcript-area { min-height: 245px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.button { min-height: 44px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 15px; border: 1px solid transparent; border-radius: 11px; color: white; background: var(--brand); font-size: 13px; font-weight: 760; text-decoration: none; transition: background .15s, transform .15s; }
+.button:hover { background: #205862; }
+.button:active { transform: translateY(1px); }
+.button.secondary { border-color: var(--line); color: var(--brand); background: white; }
+.button.secondary:hover { background: var(--wash); }
+.button.ghost { border-color: transparent; color: var(--brand-2); background: transparent; }
+.button.danger { color: var(--red); border-color: #efcfcd; background: #fffafa; }
+.button.small { min-height: 36px; padding: 7px 10px; font-size: 12px; }
+.button.wide { width: 100%; }
+.button:disabled { cursor: not-allowed; opacity: .55; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice-chip { position: relative; display: inline-flex; align-items: center; min-height: 42px; }
+.choice-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.choice-chip span { display: inline-flex; align-items: center; min-height: 42px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; color: #405e63; background: white; font-size: 12px; font-weight: 700; }
+.choice-chip input:checked + span { border-color: #72b9a5; color: var(--mint-ink); background: var(--mint); }
+.choice-chip input:focus-visible + span { outline: 3px solid #72c9b0; outline-offset: 2px; }
+.radio-list { display: grid; gap: 9px; }
+.radio-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+.radio-row input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--brand-2); flex: 0 0 auto; }
+.radio-row strong { display: block; color: var(--ink); font-size: 13px; }
+.radio-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.team-card { padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: #fbfdfc; }
+.team-card h3 { margin: 0 0 12px; }
+.count-matrix { display: grid; grid-template-columns: minmax(104px, 1.4fr) repeat(2, minmax(75px, 1fr)); gap: 6px; align-items: center; }
+.count-matrix .matrix-head { padding: 2px 3px 5px; color: var(--muted); font-size: 10px; font-weight: 750; text-align: center; }
+.count-matrix .cat-label { padding: 8px 2px; color: #39585d; font-size: 11px; font-weight: 650; }
+.count-matrix input { min-height: 40px; padding: 8px; text-align: center; }
+.segmented { display: flex; gap: 7px; }
+.segmented label { flex: 1; margin: 0; }
+.segmented input { position: absolute; opacity: 0; }
+.segmented span { min-height: 42px; display: grid; place-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: white; font-size: 12px; font-weight: 700; }
+.segmented input:checked + span { color: var(--mint-ink); border-color: #72b9a5; background: var(--mint); }
+.player-row { display: grid; grid-template-columns: 1.1fr .9fr 1fr .7fr auto; gap: 8px; align-items: end; margin: 0 0 9px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fbfdfc; }
+.player-row .field label { font-size: 10px; }
+.player-row input, .player-row select { min-height: 40px; padding: 8px; font-size: 12px; }
+.icon-button { width: 40px; height: 40px; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; color: var(--red); background: white; font-size: 18px; }
+.match-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.match-card { display: flex; flex-direction: column; min-height: 180px; padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: white; box-shadow: var(--shadow); }
+.match-card-top { display: flex; justify-content: space-between; gap: 10px; }
+.match-card h3 { margin: 0; font-size: 16px; }
+.match-card p { margin: 5px 0 12px; color: var(--muted); font-size: 12px; }
+.match-card .button-row { margin-top: auto; }
+.status-pill { display: inline-flex; align-items: center; height: 26px; padding: 4px 9px; border-radius: 999px; color: var(--amber-ink); background: var(--amber); font-size: 10px; font-weight: 800; white-space: nowrap; }
+.status-pill.done { color: var(--mint-ink); background: var(--mint); }
+.empty-state { padding: 42px 18px; border: 1px dashed #b7ccca; border-radius: 16px; text-align: center; background: rgba(255,255,255,.64); }
+.empty-state p { max-width: 420px; margin: 8px auto 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.summary-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin: 0 0 15px; }
+.summary-stat { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: white; }
+.summary-stat strong { display: block; color: var(--brand); font-size: 20px; }
+.summary-stat span { color: var(--muted); font-size: 11px; }
+.event-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.event-form .field.span2 { grid-column: 1 / -1; }
+.event-list { display: grid; gap: 8px; }
+.event-item { display: grid; grid-template-columns: 72px 1fr auto; gap: 11px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fbfdfc; }
+.event-id { color: var(--brand-2); font-family: ui-monospace, monospace; font-size: 11px; font-weight: 800; }
+.event-detail strong { display: block; color: var(--ink); font-size: 12px; }
+.event-detail p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.event-actions { display: flex; gap: 5px; }
+.mini-action { min-width: 36px; min-height: 36px; border: 1px solid var(--line); border-radius: 9px; color: var(--brand-2); background: white; font-size: 11px; font-weight: 700; }
+.divider { height: 1px; margin: 15px 0; background: var(--line); }
+.clock-panel { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px; border-radius: 13px; background: var(--brand); color: white; }
+.clock-display { font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 800; letter-spacing: .04em; }
+.clock-meta { color: #c6d9d8; font-size: 11px; }
+.clock-panel .button.secondary { border-color: #68878b; color: white; background: #235560; }
+.search-results { display: grid; gap: 6px; margin-top: 9px; }
+.search-hit { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fbfdfc; text-align: left; font-size: 11px; line-height: 1.4; }
+.search-hit strong { color: var(--brand-2); }
+.warning-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.warning { display: flex; align-items: flex-start; gap: 8px; padding: 10px 11px; border: 1px solid #f0dcae; border-radius: 10px; color: var(--amber-ink); background: #fffaf0; font-size: 12px; line-height: 1.4; }
+.warning.ok { border-color: #c8e5d9; color: var(--mint-ink); background: #f3faf6; }
+.warning::before { content: "!"; width: 18px; height: 18px; flex: 0 0 18px; display: grid; place-items: center; border-radius: 50%; background: rgba(160,111,28,.12); font-size: 11px; font-weight: 900; }
+.warning.ok::before { content: "✓"; background: #d7efe4; }
+.table-group { margin: 9px 0; border: 1px solid var(--line); border-radius: 12px; background: white; overflow: clip; }
+.table-group summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 13px 15px; color: var(--brand); font-size: 13px; font-weight: 800; cursor: pointer; list-style: none; }
+.table-group summary::-webkit-details-marker { display: none; }
+.table-group summary::after { content: "+"; font-size: 18px; color: var(--brand-2); }
+.table-group[open] summary::after { content: "−"; }
+.table-content { padding: 0 11px 10px; }
+.pair-row { display: grid; grid-template-columns: minmax(120px,1fr) repeat(4,minmax(45px,.55fr)) minmax(50px,.55fr); gap: 5px; align-items: center; padding: 8px 4px; border-top: 1px solid #edf2f1; font-size: 10px; }
+.pair-row.header { color: var(--muted); font-size: 9px; font-weight: 800; text-align: center; }
+.pair-row.header span:first-child, .pair-row .pair-label { text-align: left; }
+.pair-label { color: #39585d; font-size: 11px; font-weight: 700; }
+.pair-count { color: var(--ink); text-align: center; font-variant-numeric: tabular-nums; }
+.pair-count.blank { color: #a6b3b4; }
+.pair-count::before { display: none; }
+.psych-header, .psych-row { display: grid; grid-template-columns: minmax(110px,.8fr) minmax(0,2fr) minmax(65px,.45fr); gap: 10px; align-items: center; padding: 9px 5px; border-top: 1px solid #edf2f1; font-size: 11px; }
+.psych-header { color: var(--muted); font-size: 10px; font-weight: 800; }
+.psych-row .pair-label { color: #39585d; font-size: 11px; font-weight: 700; }
+.psych-description { color: var(--muted); overflow-wrap: anywhere; }
+.table-total { margin-left: auto; padding: 4px 8px; border-radius: 8px; color: var(--brand); background: var(--wash-strong); font-size: 11px; font-weight: 800; }
+.kv-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.kv { min-width: 0; padding: 11px; border: 1px solid var(--line); border-radius: 10px; background: #fbfdfc; }
+.kv span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; }
+.kv strong { display: block; color: var(--ink); font-size: 12px; overflow-wrap: anywhere; }
+.callout { padding: 12px 13px; border-left: 3px solid #73bca6; border-radius: 0 9px 9px 0; color: #49666b; background: #f3f9f7; font-size: 12px; line-height: 1.5; }
+.glossary details { border-top: 1px solid var(--line); padding: 10px 0; }
+.glossary summary { color: var(--brand); font-size: 12px; font-weight: 800; cursor: pointer; }
+.glossary p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.bottom-nav { position: fixed; z-index: 20; left: 50%; bottom: 0; width: min(1100px,100%); min-height: calc(66px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; padding: 7px 9px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255,255,255,.97); backdrop-filter: blur(12px); }
+.nav-button { min-height: 48px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; border: 0; border-radius: 11px; color: #648086; background: transparent; font-size: 10px; font-weight: 760; }
+.nav-button span:first-child { font-size: 17px; line-height: 1; }
+.nav-button.active { color: var(--brand); background: var(--mint); }
+.toast-region { position: fixed; z-index: 40; left: 50%; bottom: calc(78px + env(safe-area-inset-bottom)); width: min(420px, calc(100% - 28px)); transform: translateX(-50%); pointer-events: none; }
+.toast { padding: 12px 15px; border-radius: 12px; color: white; background: #1b555f; box-shadow: var(--shadow); font-size: 12px; text-align: center; animation: toast-in .18s ease-out; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.footer-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+[hidden] { display: none !important; }
+.hidden { display: none !important; }
+@media (max-width: 700px) {
+  .topbar { min-height: 60px; padding: 8px 14px; }
+  .main-content { min-height: calc(100vh - 60px); padding: 18px 13px 108px; }
+  .page-head { align-items: flex-start; flex-direction: column; margin-bottom: 15px; }
+  .page-head .button-row { width: 100%; }
+  .page-head .button { flex: 1; }
+  .card { padding: 15px; border-radius: 14px; }
+  .grid, .grid.three, .team-grid, .match-list { grid-template-columns: 1fr; }
+  .summary-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .player-row { grid-template-columns: 1fr 1fr; }
+  .player-row .field:first-child { grid-column: 1 / -1; }
+  .player-row .icon-button { width: 100%; }
+  .event-form { grid-template-columns: 1fr; }
+  .event-form .field.span2 { grid-column: auto; }
+  .event-item { grid-template-columns: 64px 1fr; }
+  .event-actions { grid-column: 2; }
+  .count-matrix { grid-template-columns: minmax(96px,1.25fr) repeat(2,minmax(64px,1fr)); gap: 4px; }
+  .pair-row.header { display: none; }
+  .pair-row:not(.header) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px 5px; margin: 7px 1px; padding: 10px 8px; border: 1px solid #e4eceb; border-radius: 10px; background: #fbfdfc; }
+  .pair-row .pair-label { grid-column: 1 / -1; padding-bottom: 3px; border-bottom: 1px solid #edf2f1; font-size: 11px; }
+  .pair-row .pair-count { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 34px; font-size: 12px; }
+  .pair-row .pair-count::before { display: block; content: attr(data-label); color: var(--muted); font-size: 8px; font-weight: 700; line-height: 1.15; text-align: center; }
+  .psych-header { display: none; }
+  .psych-row { grid-template-columns: 1fr auto; gap: 8px; margin: 7px 1px; padding: 10px 8px; border: 1px solid #e4eceb; border-radius: 10px; background: #fbfdfc; }
+  .psych-row .pair-label { grid-column: 1 / -1; padding-bottom: 5px; border-bottom: 1px solid #edf2f1; font-size: 11px; }
+  .psych-row .psych-description { grid-column: 1; font-size: 11px; }
+  .psych-row .pair-count { grid-column: 2; display: flex; flex-direction: column; gap: 3px; min-width: 55px; font-size: 12px; }
+  .psych-row .pair-count::before { content: attr(data-label); color: var(--muted); font-size: 8px; font-weight: 700; }
+  .kv-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .save-status { max-width: 92px; font-size: 10px; }
+  .clock-panel { grid-template-columns: 1fr; }
+  .clock-panel .button-row .button { flex: 1; }
+}
+@media (max-width: 370px) {
+  .pair-row:not(.header) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px 3px; padding: 9px 6px; }
+  .count-matrix { grid-template-columns: minmax(89px,1.1fr) repeat(2,minmax(57px,1fr)); }
+}
+
+  </style>
+  <meta name="standalone-version" content="Single-file edition; app script loads after the interface">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" id="home-button" type="button" aria-label="Match list">
+        <span class="brand-mark" aria-hidden="true">●</span>
+        <span><strong>Match Observer</strong><small>Mixed adult football</small></span>
+      </button>
+      <div class="save-status" id="save-status" role="status" aria-live="polite">Loading saved matches…</div>
+    </header>
+    <main id="app" class="main-content" tabindex="-1"></main>
+    <nav id="bottom-nav" class="bottom-nav" aria-label="Match sections" hidden></nav>
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <script>
+(() => {
+  'use strict';
+
+  const DB_NAME = 'mixed-adult-football-observer';
+  const DB_VERSION = 1;
+  const STORE = 'app-state';
+  const FRAMEWORK_VERSION = 'Draft observation framework V3, 24 September 2026';
+  const CAT = {
+    F: 'Female', M: 'Male', TW: 'TG Female', TM: 'TG Male', NB: 'Nonbinary', UNK: 'Unknown / not recorded'
+  };
+  const CODES = ['F', 'M', 'TW', 'TM', 'NB', 'UNK'];
+  const CODE_NAMES = {
+    tackle: 'Tackle', collision: 'Collision', foul: 'Foul', contact: 'Contact',
+    skill_error: 'Skill error / fall / slip / stumble', other: 'Other risk factor', verbal_abuse: 'Verbal abuse towards player'
+  };
+  const TABLES = {
+    table1: ['tackle', 'collision'],
+    table2: ['foul', 'contact', 'skill_error', 'other'],
+    table3: ['verbal_abuse']
+  };
+  const OUTCOMES = ['no_treatment', 'treatment_continue', 'unable_continue', 'unknown'];
+  const OUTCOME_NAMES = {
+    no_treatment: 'No treatment', treatment_continue: 'Treatment required; continued',
+    unable_continue: 'Unable to continue', unknown: 'Unknown / not recorded'
+  };
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const appRoot = $('#app');
+  const navRoot = $('#bottom-nav');
+  const statusRoot = $('#save-status');
+  const toastRoot = $('#toast-region');
+  let database = null;
+  let model = { version: 1, matches: [], activeMatchId: null, observer: '' };
+  let page = 'home';
+  let currentEditing = null;
+  let saveTimer = null;
+  let tickTimer = null;
+  let toastTimer = null;
+  let currentQualEditing = null;
+  let webmcpLifecycle = null;
+
+  function localDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function localTime() {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  function emptyCounts() { return Object.fromEntries(CODES.map(c => [c, ''])); }
+  function makeMatch() {
+    const id = `MAF-${Date.now().toString(36).toUpperCase()}`;
+    return {
+      id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), status: 'draft',
+      setup: {
+        observer: model.observer || '', date: localDate(), time: localTime(), league: '', home: { name: '', squad: emptyCounts(), onPitch: emptyCounts(), point: '' },
+        away: { name: '', squad: emptyCounts(), onPitch: emptyCounts(), point: '' },
+        genderRules: '', rulesOther: '', weather: '', surface: '', pitchSize: '', competitiveness: '',
+        context: { derby: false, cup: false, semi: false, final: false, other: '' },
+        players: []
+      },
+      result: { duration: '', homeScore: '', awayScore: '', checked: false, checkedNote: '' },
+      transcript: '', events: [], qualitative: [], quickNotes: [], nextIncident: 1,
+      assessed: { tackle: false, collision: false, foul: false, contact: false, skill_error: false, other: false, verbal_abuse: false },
+      clock: { elapsedMs: 0, runningSince: null, period: 1, started: false }
+    };
+  }
+  function activeMatch() { return model.matches.find(m => m.id === model.activeMatchId) || null; }
+  function ensureShape(m) {
+    if (!m || typeof m !== 'object') throw new Error('The file does not contain a match.');
+    m.setup ||= {};
+    m.setup.home ||= { name: '', squad: emptyCounts(), onPitch: emptyCounts(), point: '' };
+    m.setup.away ||= { name: '', squad: emptyCounts(), onPitch: emptyCounts(), point: '' };
+    for (const side of ['home','away']) {
+      m.setup[side].squad ||= emptyCounts(); m.setup[side].onPitch ||= emptyCounts();
+      for (const c of CODES) { m.setup[side].squad[c] ??= ''; m.setup[side].onPitch[c] ??= ''; }
+    }
+    m.setup.context ||= { derby: false, cup: false, semi: false, final: false, other: '' };
+    m.setup.players ||= []; m.result ||= { duration:'',homeScore:'',awayScore:'',checked:false,checkedNote:'' };
+    m.events ||= []; m.qualitative ||= []; m.quickNotes ||= []; m.nextIncident ||= m.events.length + 1;
+    m.assessed ||= {}; for (const c of Object.keys(CODE_NAMES)) m.assessed[c] ??= false;
+    m.clock ||= { elapsedMs:0,runningSince:null,period:1,started:false };
+    return m;
+  }
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) { resolve(null); return; }
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('Could not open local match storage.'));
+    });
+  }
+  function dbRead() {
+    if (!database) {
+      try { return Promise.resolve(JSON.parse(localStorage.getItem(DB_NAME) || 'null')); }
+      catch { return Promise.resolve(null); }
+    }
+    return new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get('current');
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function dbWrite(value) {
+    if (!database) {
+      try { localStorage.setItem(DB_NAME, JSON.stringify(value)); return Promise.resolve(); }
+      catch (err) { return Promise.reject(err); }
+    }
+    return new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(value, 'current');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error('Local save was interrupted.'));
+    });
+  }
+  function markChanged() {
+    const m = activeMatch();
+    if (m) m.updatedAt = new Date().toISOString();
+    setSaveStatus('Saving…');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try { await dbWrite(model); setSaveStatus('Saved on this device'); }
+      catch (err) { setSaveStatus('Could not save locally', true); console.error(err); }
+    }, 250);
+  }
+  function setSaveStatus(text, bad = false) {
+    statusRoot.textContent = text;
+    statusRoot.classList.toggle('error', bad);
+  }
+  function toast(text) {
+    toastRoot.innerHTML = `<div class="toast">${esc(text)}</div>`;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastRoot.innerHTML = ''; }, 2600);
+  }
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function val(value) { return esc(value === null || value === undefined ? '' : value); }
+  function getPath(obj, path) { return path.split('.').reduce((o,k) => o?.[k], obj); }
+  function setPath(obj, path, value) {
+    const parts = path.split('.'); const last = parts.pop();
+    const target = parts.reduce((o,k) => o[k] ||= {}, obj); target[last] = value;
+  }
+  function shortDate(s) {
+    if (!s) return 'Date not set';
+    const d = new Date(`${s}T12:00:00`);
+    return Number.isNaN(d.getTime()) ? s : new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric'}).format(d);
+  }
+  function displayMatchName(m) {
+    const home = m.setup?.home?.name || 'Home team'; const away = m.setup?.away?.name || 'Away team';
+    return `${home} v ${away}`;
+  }
+  function label(code) { return CAT[code] || 'Unknown / not recorded'; }
+  function codeOptions(selected, includeBlank = false) {
+    return `${includeBlank ? '<option value="">Not recorded</option>' : ''}` + CODES.map(c => `<option value="${c}" ${selected===c?'selected':''}>${c} · ${esc(CAT[c])}</option>`).join('');
+  }
+  function radioChecked(value, candidate) { return value === candidate ? 'checked' : ''; }
+  function navIcon(name) { return ({setup:'◷',code:'✎',review:'▤',home:'⌂'})[name] || '·'; }
+  function renderNav() {
+    navRoot.hidden = !activeMatch();
+    if (!activeMatch()) { navRoot.innerHTML = ''; return; }
+    navRoot.innerHTML = ['setup','code','review','home'].map(n => {
+      const text = ({setup:'Fixture',code:'Coding',review:'Review',home:'Matches'})[n];
+      return `<button type="button" class="nav-button ${page===n?'active':''}" data-page="${n}" aria-current="${page===n?'page':'false'}"><span aria-hidden="true">${navIcon(n)}</span><span>${text}</span></button>`;
+    }).join('');
+  }
+  function render() {
+    const m = activeMatch();
+    renderNav();
+    if (page === 'home' || !m) { page = 'home'; appRoot.innerHTML = renderHome(); return; }
+    if (page === 'setup') appRoot.innerHTML = renderSetup(m);
+    else if (page === 'code') appRoot.innerHTML = renderCode(m);
+    else if (page === 'review') appRoot.innerHTML = renderReview(m);
+    appRoot.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+  function renderHome() {
+    const sorted = [...model.matches].sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+    const cards = sorted.map(m => {
+      const done = m.status === 'reviewed';
+      const result = m.result?.homeScore !== '' && m.result?.awayScore !== '' ? ` · ${m.result.homeScore}–${m.result.awayScore}` : '';
+      return `<article class="match-card">
+        <div class="match-card-top"><div><h3>${esc(displayMatchName(m))}${esc(result)}</h3><p>${esc(shortDate(m.setup?.date))}${m.setup?.league?` · ${esc(m.setup.league)}`:''}</p></div><span class="status-pill ${done?'done':''}">${done?'Reviewed':'In progress'}</span></div>
+        <div class="button-row"><button class="button small" data-open-match="${esc(m.id)}">Open match</button><button class="button secondary small" data-export-json="${esc(m.id)}">Backup</button><button class="button danger small" data-delete-match="${esc(m.id)}" aria-label="Delete ${esc(displayMatchName(m))}">Delete</button></div>
+      </article>`;
+    }).join('');
+    return `<div class="page-head"><div><p class="eyebrow">Private match workspace</p><h1>Your matches</h1><p class="lede">Set up a fixture, code the transcript afterwards, then download a match workbook. Observations are saved in this browser on this device.</p></div><div class="button-row"><button class="button" data-create-match>＋ New match</button><label class="button secondary" for="import-json">Import backup<input id="import-json" type="file" accept="application/json,.json" hidden></label></div></div>
+      <div class="privacy-line"><span class="privacy-dot"></span>Match data stays in this browser · no account or data upload</div>
+      ${cards ? `<section class="match-list" aria-label="Saved matches">${cards}</section>` : `<section class="empty-state"><div class="brand-mark" style="margin:0 auto 13px;color:var(--brand-2);border-color:#9bc9be">●</div><h2>No matches yet</h2><p>Create your first fixture. The form is divided into short sections and saves as you work.</p><button class="button" data-create-match>Create a match</button></section>`}
+      <p class="footer-note">Use “Backup” to move one match to another browser. The Excel export contains the coded data; the JSON backup also includes the transcript and detailed entries.</p>`;
+  }
+
+  function field(path, title, type='text', extra='') {
+    const m = activeMatch(); const value = getPath(m, path);
+    return `<div class="field ${extra}"><label for="f-${path.replaceAll('.','-')}">${esc(title)}</label><input id="f-${path.replaceAll('.','-')}" type="${type}" data-bind="${path}" value="${val(value)}" ${type==='number'?'min="0" step="1"':''}></div>`;
+  }
+  function checkbox(path, title, checked, extra='') {
+    return `<label class="choice-chip ${extra}"><input type="checkbox" data-check="${path}" ${checked?'checked':''}><span>${esc(title)}</span></label>`;
+  }
+  function renderCounts(side, title) {
+    const team = activeMatch().setup[side];
+    return `<div class="team-card"><h3>${esc(title)}</h3><div class="count-matrix"><span></span><span class="matrix-head">In squad</span><span class="matrix-head">On pitch</span>
+      ${CODES.map(c=>`<span class="cat-label">${esc(CAT[c])}</span><input type="number" min="0" inputmode="numeric" aria-label="${esc(title)} ${esc(CAT[c])} in squad" data-bind="setup.${side}.squad.${c}" value="${val(team.squad[c])}"><input type="number" min="0" inputmode="numeric" aria-label="${esc(title)} ${esc(CAT[c])} on pitch" data-bind="setup.${side}.onPitch.${c}" value="${val(team.onPitch[c])}">`).join('')}
+      </div><div class="field" style="margin-top:12px"><label for="f-${side}-point">On-pitch count describes</label><select id="f-${side}-point" data-bind="setup.${side}.point"><option value="">Not recorded</option>${[['kickoff','Kick-off'],['halftime','Half-time'],['snapshot','Other point / snapshot'],['whole','Throughout the match']].map(([v,t])=>`<option value="${v}" ${team.point===v?'selected':''}>${t}</option>`).join('')}</select></div></div>`;
+  }
+  function renderPlayers(m) {
+    const rows = m.setup.players.map(p => `<div class="player-row" data-player="${esc(p.id)}">
+      <div class="field"><label>Anonymous label</label><input type="text" placeholder="e.g. Home player 1" data-player-field="label" value="${val(p.label)}"></div>
+      <div class="field"><label>Team</label><select data-player-field="side"><option value="home" ${p.side==='home'?'selected':''}>Home</option><option value="away" ${p.side==='away'?'selected':''}>Away</option></select></div>
+      <div class="field"><label>Framework category</label><select data-player-field="category">${codeOptions(p.category,true)}</select></div>
+      <div class="field"><label>Minutes</label><input type="number" inputmode="numeric" min="0" data-player-field="minutes" value="${val(p.minutes)}"></div>
+      <button type="button" class="icon-button" data-remove-player="${esc(p.id)}" aria-label="Remove player">×</button>
+    </div>`).join('');
+    return `<div>${rows || '<p class="footer-note">No player time entries yet.</p>'}<button type="button" class="button secondary small" data-add-player>＋ Add player time</button></div>`;
+  }
+  function renderSetup(m) {
+    const setup = m.setup;
+    const rules = [
+      ['min1','Yes – minimum of 1 female per team'],['min2','Yes – minimum of 2 females per team'],['min3','Yes – minimum of 3 females per team'],
+      ['other','Other'],['not_aware','Not aware'],['any','The competition allows for any gender composition']
+    ];
+    return `<div class="page-head"><div><p class="eyebrow">Step 1 of 3 · fixture setup</p><h1>${esc(displayMatchName(m))}</h1><p class="lede">Enter what you know before kick-off. Unknown or unrecorded fields can stay blank.</p></div><span class="privacy-line"><span class="privacy-dot"></span>Saved on this device</span></div>
+      <section class="card"><div class="card-header"><div><h2>Match details</h2><p>Basic information to identify the observation.</p></div></div><div class="grid">
+        ${field('setup.observer','Name of observer')}${field('setup.date','Match date','date')}${field('setup.time','Kick-off time','time')}${field('setup.league','League')}
+        ${field('setup.home.name','Home team')}${field('setup.away.name','Away team')}
+        <div class="field full"><span class="label">Relevant rules on gender composition</span><div class="grid">${rules.map(([v,t])=>`<label class="radio-row"><input type="radio" name="gender-rules" data-radio="setup.genderRules" value="${v}" ${radioChecked(setup.genderRules,v)}><span><strong>${esc(t)}</strong></span></label>`).join('')}</div></div>
+        ${setup.genderRules==='other'?field('setup.rulesOther','Other rule / details','text','full'):''}
+      </div></section>
+      <section class="card"><div class="card-header"><div><h2>Team counts</h2><p>Use the categories provided in the framework. These counts are descriptive; the app does not infer anyone’s category.</p></div></div><div class="team-grid">${renderCounts('home','Home team')}${renderCounts('away','Away team')}</div></section>
+      <section class="card"><div class="card-header"><div><h2>Conditions and competition</h2><p>Choose one level that best describes what was at stake.</p></div></div><div class="grid">
+        ${field('setup.weather','Weather conditions')}${field('setup.surface','Surface')}${field('setup.pitchSize','Pitch size if available')}
+        <div class="field full"><span class="label">Contextual match competitiveness</span><div class="radio-list">
+          ${[['1','Level 1: Just for fun','Casual kickabouts or arranged friendlies where score is not important and there is nothing to play for.'],['2','Level 2: Single-day contest','One-off or charity competitions, workplace or university tournaments held in a single day.'],['3','Level 3: Ongoing structured competition','League or cup matches where points or progression accumulate over time.']].map(([v,t,d])=>`<label class="radio-row"><input type="radio" name="competitiveness" data-radio="setup.competitiveness" value="${v}" ${radioChecked(setup.competitiveness,v)}><span><strong>${esc(t)}</strong><small>${esc(d)}</small></span></label>`).join('')}
+        </div></div>
+        <div class="field full"><span class="label">Match context</span><div class="chip-row">${checkbox('setup.context.derby','Local derby',setup.context.derby)}${checkbox('setup.context.cup','Cup match',setup.context.cup)}${checkbox('setup.context.semi','Semi-final',setup.context.semi)}${checkbox('setup.context.final','Final',setup.context.final)}</div></div>
+        ${field('setup.context.other','Other context increasing competitiveness','text','full')}
+      </div></section>
+      <section class="card"><div class="card-header"><div><h2>Player time</h2><p>Add as many anonymous player labels as needed. Minutes may be left blank if they are not known.</p></div></div>${renderPlayers(m)}</section>
+      <section class="card"><div class="card-header"><div><h2>Match result</h2><p>You can enter the score now or complete it after the match.</p></div></div><div class="grid">
+        ${field('result.duration','Match duration in minutes','number')}${field('result.homeScore','Home score','number')}${field('result.awayScore','Away score','number')}
+        <div class="field full"><label class="choice-chip"><input type="checkbox" data-check="result.checked" ${m.result.checked?'checked':''}><span>Result checked with referee or coach</span></label></div>
+        ${field('result.checkedNote','Check details / note','text','full')}
+      </div><p class="footer-note">The home team score is always listed first in the workbook.</p></section>
+      <div class="button-row"><button class="button" type="button" data-page="code">Continue to transcript coding →</button><button class="button secondary" type="button" data-page="review">Review this match</button></div>`;
+  }
+
+  function elapsedMs(m) {
+    const c = m.clock || {};
+    return (Number(c.elapsedMs)||0) + (c.runningSince ? Math.max(0,Date.now()-Number(c.runningSince)) : 0);
+  }
+  function formatClock(ms) {
+    const total = Math.floor(ms/1000); const min = Math.floor(total/60); const sec = total%60;
+    return `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  function currentMatchTime(m) { return `P${m.clock.period || 1} ${formatClock(elapsedMs(m))}`; }
+  function eventSummary(e) {
+    const names = (e.codes||[]).map(c=>CODE_NAMES[c]).join(' + ') || 'Observation';
+    const pairing = e.codes?.includes('skill_error') && e.codes.length===1 ? `Affected: ${label(e.receiver)}` : (e.actor || e.receiver ? `${label(e.actor)} → ${label(e.receiver)}` : 'Pairing not recorded');
+    if (e.codes?.includes('verbal_abuse')) return `${names} · ${e.sourceRole ? e.sourceRole[0].toUpperCase()+e.sourceRole.slice(1) : 'Source unknown'} · ×${e.count||1}`;
+    return `${names} · ${pairing} · ${OUTCOME_NAMES[e.outcome]||OUTCOME_NAMES.unknown} · ×${e.count||1}`;
+  }
+  function renderEventForm(m) {
+    const e = currentEditing ? m.events.find(x=>x.id===currentEditing) : null;
+    const selected = e?.codes || [];
+    const injury = e?.injury || {};
+    const typeNames = ['tackle','collision','foul','contact','skill_error','other','verbal_abuse'];
+    const sourceSelected = selected.includes('verbal_abuse');
+    const selectedOnlySkill = selected.length===1 && selected[0]==='skill_error';
+    return `<form class="card" id="event-form">
+      <div class="card-header"><div><h2>${e?`Edit ${esc(e.id)}`:'Code an incident'}</h2><p>Use one incident ID for all applicable codes. You can edit these details before exporting.</p></div></div>
+      <div class="event-form">
+        <div class="field span2"><span class="label">Observation code(s)</span><div class="chip-row" id="event-code-list">${typeNames.map(c=>`<label class="choice-chip"><input type="checkbox" name="codes" value="${c}" ${selected.includes(c)?'checked':''}><span>${esc(CODE_NAMES[c])}</span></label>`).join('')}</div><small class="hint">A tackle and a foul can share one incident ID. Contact is reserved for contact that is not a tackle, foul or collision. A skill error is not caused by external force.</small></div>
+        <div class="field ${selectedOnlySkill||sourceSelected?'hidden':''}" id="actor-field"><label for="event-actor">Actor / culprit category</label><select id="event-actor" name="actor">${codeOptions(e?.actor||'UNK')}</select></div>
+        <div class="field ${sourceSelected?'hidden':''}" id="receiver-field"><label for="event-receiver">Receiver / affected player category</label><select id="event-receiver" name="receiver">${codeOptions(e?.receiver||'UNK')}</select></div>
+        <div class="field ${sourceSelected?'':'hidden'}" id="source-field"><label for="event-source">Source of verbal abuse</label><select id="event-source" name="sourceRole"><option value="unknown" ${e?.sourceRole==='unknown'?'selected':''}>Unknown / not recorded</option><option value="player" ${e?.sourceRole==='player'?'selected':''}>Player</option><option value="coach" ${e?.sourceRole==='coach'?'selected':''}>Coach</option><option value="spectator" ${e?.sourceRole==='spectator'?'selected':''}>Spectator</option></select></div>
+        <div class="field" id="outcome-field"><label for="event-outcome">Outcome for affected player</label><select id="event-outcome" name="outcome">${OUTCOMES.map(o=>`<option value="${o}" ${(e?.outcome||'unknown')===o?'selected':''}>${esc(OUTCOME_NAMES[o])}</option>`).join('')}</select><small class="hint">“Unable to continue” means the player had to come off because of this incident.</small></div>
+        <div class="field"><label for="event-count">Count</label><input id="event-count" name="count" type="number" min="1" step="1" inputmode="numeric" value="${val(e?.count||1)}"><small class="hint">Use a batch count only for identical events. Batch records receive one shared record ID.</small></div>
+        <div class="field"><label for="event-time">Match time / period</label><input id="event-time" name="time" type="text" placeholder="e.g. P1 18:42" value="${val(e?.time||'')}"></div>
+        <div class="field"><label for="event-ref">Transcript reference</label><input id="event-ref" name="transcriptRef" type="text" placeholder="Timestamp or excerpt" value="${val(e?.transcriptRef||'')}"></div>
+        <div class="field span2"><label for="event-description">Description / source note</label><textarea id="event-description" name="description" rows="3" placeholder="Brief factual note; names are optional.">${val(e?.description||'')}</textarea></div>
+        <div class="field span2"><label class="choice-chip"><input id="has-injury" type="checkbox" name="hasInjury" ${e?.injury?'checked':''}><span>Record injury details for this incident</span></label></div>
+        <div id="injury-fields" class="event-form span2 ${e?.injury?'':'hidden'}">
+          <div class="field"><label for="injury-how">How it happened</label><input id="injury-how" name="injuryHow" type="text" value="${val(injury.how||'')}"></div>
+          <div class="field"><label for="injury-body">Body part</label><input id="injury-body" name="injuryBodyPart" type="text" value="${val(injury.bodyPart||'')}"></div>
+          <div class="field"><label for="injury-type">Type of injury</label><input id="injury-type" name="injuryType" type="text" value="${val(injury.type||'')}"></div>
+          <div class="field"><label for="injury-treatment">Treatment provided / required</label><input id="injury-treatment" name="injuryTreatment" type="text" value="${val(injury.treatment||'')}"></div>
+          <div class="field"><label for="injury-came-off">Did the player come off?</label><select id="injury-came-off" name="injuryCameOff"><option value="unknown" ${injury.cameOff==='unknown'?'selected':''}>Unknown / not recorded</option><option value="yes" ${injury.cameOff==='yes'?'selected':''}>Yes</option><option value="no" ${injury.cameOff==='no'?'selected':''}>No</option></select></div>
+          <div class="field"><label for="injury-returned">Did they later return?</label><select id="injury-returned" name="injuryReturned"><option value="unknown" ${injury.returned==='unknown'?'selected':''}>Unknown / not recorded</option><option value="yes" ${injury.returned==='yes'?'selected':''}>Yes</option><option value="no" ${injury.returned==='no'?'selected':''}>No</option></select></div>
+          <div class="field"><label for="injury-hospital">Hospitalisation</label><select id="injury-hospital" name="injuryHospital"><option value="unknown" ${injury.hospital==='unknown'?'selected':''}>Unknown / not recorded</option><option value="yes" ${injury.hospital==='yes'?'selected':''}>Yes</option><option value="no" ${injury.hospital==='no'?'selected':''}>No</option></select></div>
+          <div class="field"><label for="injury-description">Injury description</label><input id="injury-description" name="injuryDescription" type="text" value="${val(injury.description||'')}"></div>
+        </div>
+        <div class="field span2 button-row"><button class="button" type="submit">${e?'Save incident':'Add incident'}</button>${e?'<button class="button secondary" type="button" data-cancel-edit>Cancel edit</button>':''}<button class="button ghost" type="button" data-add-excerpt>Use selected transcript excerpt</button></div>
+      </div>
+    </form>`;
+  }
+  function renderQuickNotes(m) {
+    return `<section class="card"><div class="card-header"><div><h2>Quick note during play</h2><p>Start the match clock once; tap to save a short note with the current period and time.</p></div></div>
+      <div class="clock-panel"><div><div class="clock-display" id="clock-display">${formatClock(elapsedMs(m))}</div><div class="clock-meta" id="clock-meta">Period ${m.clock.period||1} · ${m.clock.runningSince?'Clock running':'Clock paused'}</div></div>
+        <div class="button-row"><button class="button secondary small" data-clock-toggle>${m.clock.runningSince?'Pause':'Start clock'}</button><button class="button secondary small" data-period-next>Next period</button></div></div>
+      <div class="grid" style="margin-top:12px"><div class="field full"><label for="quick-note">Quick note</label><textarea id="quick-note" placeholder="Short observation to follow up after the match">${val(m.quickDraft||'')}</textarea></div><div class="field"><button class="button" type="button" data-add-quick-note>Save timed note</button></div></div>
+      ${m.quickNotes.length?`<div class="divider"></div><div class="event-list">${m.quickNotes.slice().reverse().map((n,i)=>`<div class="event-item"><div class="event-id">${esc(n.time||'No time')}</div><div class="event-detail"><strong>Quick note · ${esc(n.id)}</strong><p>${esc(n.text)}</p></div><div class="event-actions"><button class="mini-action" data-delete-quick="${esc(n.id)}" aria-label="Delete note">×</button></div></div>`).join('')}</div>`:''}
+    </section>`;
+  }
+  function assessedPanel(m) {
+    return `<section class="card"><div class="card-header"><div><h2>Observation coverage</h2><p>Mark a category as assessed when you have checked it. A checked category with no entries exports zero; an unchecked category remains blank.</p></div></div><div class="chip-row">${Object.keys(CODE_NAMES).map(c=>`<button type="button" class="button ${m.assessed[c]?'small':'secondary small'}" data-assessed="${c}">${m.assessed[c]?'✓ ':''}${esc(CODE_NAMES[c])}</button>`).join('')}</div></section>`;
+  }
+  function renderEvents(m) {
+    if (!m.events.length) return `<div class="empty-state"><h3>No coded incidents yet</h3><p>Add an event after reviewing the transcript. You can mark categories with no incidents as assessed above.</p></div>`;
+    return `<div class="event-list">${m.events.slice().reverse().map(e=>`<article class="event-item"><div class="event-id">${esc(e.id)}<br>${esc(e.time||'')}</div><div class="event-detail"><strong>${esc(eventSummary(e))}</strong><p>${esc(e.description||e.transcriptRef||'No description entered')}${e.injury?` · Injury: ${esc([e.injury.bodyPart,e.injury.type].filter(Boolean).join(', ')||'details entered')}`:''}</p></div><div class="event-actions"><button class="mini-action" type="button" data-edit-event="${esc(e.id)}">Edit</button><button class="mini-action" type="button" data-delete-event="${esc(e.id)}" aria-label="Delete ${esc(e.id)}">×</button></div></article>`).join('')}</div>`;
+  }
+  function renderCode(m) {
+    return `<div class="page-head"><div><p class="eyebrow">Step 2 of 3 · transcript coding</p><h1>${esc(displayMatchName(m))}</h1><p class="lede">Code from the transcript after the match. Incident IDs stay attached when an event appears in more than one table.</p></div><button class="button secondary" type="button" data-open-glossary>Category definitions</button></div>
+      ${renderQuickNotes(m)}
+      <section class="card"><div class="card-header"><div><h2>Transcript</h2><p>Paste text or import a plain-text file. The transcript stays in this browser and is included only in the JSON backup.</p></div></div>
+        <div class="grid"><div class="field full"><label for="transcript-search">Find a word or phrase</label><input type="search" id="transcript-search" placeholder="Search transcript text"></div><div class="field full"><div id="search-results" class="search-results"></div></div><div class="field full"><label for="transcript-text">Transcript text</label><textarea class="transcript-area" id="transcript-text" placeholder="Paste or import the match commentary transcript">${val(m.transcript)}</textarea><small class="hint">Selecting a passage and choosing “Use selected transcript excerpt” will copy it into the incident description.</small></div><div class="field"><label class="button secondary" for="transcript-file">Import .txt transcript<input id="transcript-file" type="file" accept=".txt,text/plain,.md,text/markdown" hidden></label></div><div class="field"><button class="button ghost" type="button" data-clear-transcript>Clear transcript</button></div></div>
+      </section>
+      ${assessedPanel(m)}
+      ${renderEventForm(m)}
+      <section class="card"><div class="card-header"><div><h2>Coded incidents <span class="table-total">${m.events.length}</span></h2><p>One row can carry multiple applicable codes under the same incident ID.</p></div></div>${renderEvents(m)}</section>
+      ${renderQualitative(m)}
+      <section id="coding-glossary" class="card glossary"><div class="card-header"><div><h2>Framework definitions</h2><p>Definitions from the observation framework and its risk assessment appendix.</p></div></div>${glossary()}</section>
+      <div class="button-row"><button class="button" type="button" data-page="review">Continue to review →</button><button class="button secondary" type="button" data-page="setup">← Fixture setup</button></div>`;
+  }
+
+  const QUAL_TYPES = {
+    competitiveness: 'Heightened competitiveness', time_wasting: 'Tactical time wasting',
+    good_sportsmanship: 'Good sportsmanship', poor_sportsmanship: 'Poor sportsmanship',
+    hesitancy: 'Hesitancy about tackles', fun: 'Enjoyment / lack of enjoyment', other: 'Other observation'
+  };
+  function renderQualitative(m) {
+    const q = currentQualEditing ? m.qualitative.find(x=>x.id===currentQualEditing) : null;
+    const rows = m.qualitative.length ? `<div class="event-list">${m.qualitative.slice().reverse().map(n=>`<article class="event-item"><div class="event-id">${esc(n.id)}<br>${esc(n.time||'')}</div><div class="event-detail"><strong>${esc(QUAL_TYPES[n.kind]||n.kind)}</strong><p>${esc(n.description||'')}${n.who?` · Involved: ${esc(n.who)}`:''}${n.impact?` · Impact: ${esc(n.impact)}`:''}</p></div><div class="event-actions"><button class="mini-action" type="button" data-edit-qual="${esc(n.id)}">Edit</button><button class="mini-action" type="button" data-delete-qual="${esc(n.id)}" aria-label="Delete observation">×</button></div></article>`).join('')}</div>` : '<p class="footer-note">No qualitative observations added yet.</p>';
+    return `<section class="card"><div class="card-header"><div><h2>Qualitative observations</h2><p>Record what happened and the context. Leave causes open where you cannot establish them.</p></div></div>
+      <form id="qual-form" class="event-form">
+        <div class="field"><label for="qual-kind">Observation type</label><select id="qual-kind" name="kind">${Object.entries(QUAL_TYPES).map(([k,t])=>`<option value="${k}" ${q?.kind===k?'selected':''}>${esc(t)}</option>`).join('')}</select></div>
+        <div class="field"><label for="qual-time">Match time / period</label><input id="qual-time" name="time" type="text" placeholder="e.g. P2 31:10" value="${val(q?.time||'')}"></div>
+        <div class="field"><label for="qual-who">Who was involved, if known</label><input id="qual-who" name="who" type="text" value="${val(q?.who||'')}"></div>
+        <div class="field"><label for="qual-ref">Transcript reference</label><input id="qual-ref" name="transcriptRef" type="text" value="${val(q?.transcriptRef||'')}"></div>
+        <div class="field span2"><label for="qual-description">What happened</label><textarea id="qual-description" name="description" rows="3">${val(q?.description||'')}</textarea></div>
+        <div class="field"><label for="qual-context">Context / possible reason</label><textarea id="qual-context" name="context" rows="2">${val(q?.context||'')}</textarea></div>
+        <div class="field"><label for="qual-impact">Impact on player(s) or game</label><textarea id="qual-impact" name="impact" rows="2">${val(q?.impact||'')}</textarea></div>
+        <div class="field span2 button-row"><button class="button" type="submit">${q?'Save observation':'Add qualitative observation'}</button>${q?'<button class="button secondary" type="button" data-cancel-qual>Cancel edit</button>':''}</div>
+      </form>
+      ${rows}
+    </section>`;
+  }
+
+  function eventCount(m, code, filter = null) {
+    return m.events.filter(e => (e.codes||[]).includes(code) && (!filter || filter(e))).reduce((sum,e)=>sum+(Number(e.count)||1),0);
+  }
+  function pairRows() {
+    const rows=[];
+    for (const a of CODES) for (const b of CODES) rows.push({ actor:a, receiver:b, key:`${a}>${b}`, text:`${a} on ${b}` });
+    return rows;
+  }
+  function rowCounts(m, code, row) {
+    const matching = m.events.filter(e => (e.codes||[]).includes(code) && (code==='skill_error' ? e.receiver===row.receiver : (e.actor||'UNK')===row.actor && (e.receiver||'UNK')===row.receiver));
+    const result = Object.fromEntries(OUTCOMES.map(o=>[o,0]));
+    for (const e of matching) result[e.outcome||'unknown'] += Number(e.count)||1;
+    return result;
+  }
+  function catTotal(m, code) { return eventCount(m,code); }
+  function outcomeShort(o) { return ({no_treatment:'No treat',treatment_continue:'Treat + continue',unable_continue:'Came off',unknown:'Unknown'})[o]; }
+  function tableRowsFor(m, code) {
+    const pairings = code==='skill_error' ? CODES.map(c=>({actor:null,receiver:c,key:`single:${c}`,text:`Affected: ${c} · ${CAT[c]}`})) : pairRows();
+    const assessed=!!m.assessed[code];
+    const rows=pairings.map(p=>{
+      const counts=rowCounts(m,code,p);
+      return `<div class="pair-row"><span class="pair-label">${esc(p.text)}</span>${OUTCOMES.map(o=>`<span class="pair-count ${assessed?'':'blank'}" data-label="${esc(outcomeShort(o))}">${assessed?counts[o]:'—'}</span>`).join('')}<span class="pair-count ${assessed?'':'blank'}" data-label="Total">${assessed?Object.values(counts).reduce((a,b)=>a+b,0):'—'}</span></div>`;
+    }).join('');
+    const total=assessed?catTotal(m,code):'—';
+    return `<details class="table-group"><summary><span>${esc(CODE_NAMES[code])}</span><span class="table-total">${assessed?`${total} total`:'Not assessed'}</span></summary><div class="table-content">
+      <div class="pair-row header"><span>${code==='skill_error'?'Affected category':'Actor on receiver'}</span>${OUTCOMES.map(o=>`<span>${esc(outcomeShort(o))}</span>`).join('')}<span>Total</span></div>${rows}
+      <div class="pair-row"><span class="pair-label">Column total</span>${OUTCOMES.map(o=>{const col=m.events.filter(e=>(e.codes||[]).includes(code)&&(e.outcome||'unknown')===o).reduce((s,e)=>s+(Number(e.count)||1),0);return `<span class="pair-count ${assessed?'':'blank'}" data-label="${esc(outcomeShort(o))}">${assessed?col:'—'}</span>`}).join('')}<span class="pair-count ${assessed?'':'blank'}" data-label="Total">${assessed?total:'—'}</span></div>
+      </div></details>`;
+  }
+  function verbalSummary(m) {
+    const roles=['player','coach','spectator','unknown'];
+    const assessed=!!m.assessed.verbal_abuse;
+    return `<div class="psych-header"><span>Source</span><span>Description</span><span>Frequency</span></div>${roles.map(role=>{
+      const matches=m.events.filter(e=>(e.codes||[]).includes('verbal_abuse')&&(e.sourceRole||'unknown')===role);
+      const freq=matches.reduce((s,e)=>s+(Number(e.count)||1),0);
+      const notes=[...new Set(matches.map(e=>e.description).filter(Boolean))].join(' · ');
+      return `<div class="psych-row"><span class="pair-label">${role==='unknown'?'Unknown / not recorded':role[0].toUpperCase()+role.slice(1)}</span><span class="psych-description">${esc(notes||'')}</span><span class="pair-count ${assessed?'':'blank'}" data-label="Frequency">${assessed?freq:'—'}</span></div>`;
+    }).join('')}<div class="callout">Table 3 total: ${assessed?eventCount(m,'verbal_abuse'):'not assessed'}${assessed?' observations':''}.</div>`;
+  }
+  function profileWarnings(m) {
+    const warnings=[]; const s=m.setup;
+    if (!s.date) warnings.push('Match date has not been recorded.');
+    if (!s.home.name || !s.away.name) warnings.push('Enter both team names when known.');
+    if (!s.competitiveness) warnings.push('Contextual match competitiveness has not been selected.');
+    for (const side of ['home','away']) for(const c of CODES) {
+      const squad=Number(s[side].squad[c]);const on=Number(s[side].onPitch[c]);
+      if(s[side].squad[c]!==''&&s[side].onPitch[c]!==''&&on>squad) warnings.push(`${side==='home'?'Home':'Away'} ${CAT[c]} on-pitch count exceeds the squad count.`);
+    }
+    const duration=Number(m.result.duration);
+    if(duration>0) for(const p of s.players) if(Number(p.minutes)>duration) warnings.push(`${p.label||'A player'} has more minutes than the match duration.`);
+    if((m.result.homeScore!==''||m.result.awayScore!=='')&&(m.result.homeScore===''||m.result.awayScore==='')) warnings.push('One score field is still blank.');
+    for(const e of m.events) if(e.injury){
+      if(e.outcome==='unable_continue'&&e.injury.cameOff==='no')warnings.push(`${e.id}: outcome says the player came off, but injury details say they did not.`);
+      if(e.outcome==='treatment_continue'&&e.injury.cameOff==='yes')warnings.push(`${e.id}: outcome says the player continued, but injury details say they came off.`);
+    }
+    const notAssessed=Object.keys(CODE_NAMES).filter(c=>!m.assessed[c]);
+    if(notAssessed.length) warnings.push(`${notAssessed.length} observation ${notAssessed.length===1?'category is':'categories are'} still marked not assessed.`);
+    return warnings;
+  }
+  function renderReview(m) {
+    const warnings=profileWarnings(m);
+    const eventN=m.events.reduce((s,e)=>s+(Number(e.count)||1),0);
+    const injuryN=m.events.filter(e=>e.injury).length;
+    const totalQual=m.qualitative.length+m.quickNotes.length;
+    const context=[m.setup.context.derby?'Local derby':'',m.setup.context.cup?'Cup match':'',m.setup.context.semi?'Semi-final':'',m.setup.context.final?'Final':'',m.setup.context.other].filter(Boolean).join(', ')||'Not recorded';
+    return `<div class="page-head"><div><p class="eyebrow">Step 3 of 3 · review and export</p><h1>Review match</h1><p class="lede">Check the profile, observation coverage and calculated tables. You can still export a partial match.</p></div><button class="button" type="button" data-export-xlsx>Download Excel</button></div>
+      <div class="summary-strip"><div class="summary-stat"><strong>${eventN}</strong><span>coded event count</span></div><div class="summary-stat"><strong>${injuryN}</strong><span>injury records</span></div><div class="summary-stat"><strong>${totalQual}</strong><span>qualitative / quick notes</span></div><div class="summary-stat"><strong>${m.result.homeScore!==''&&m.result.awayScore!==''?`${val(m.result.homeScore)}–${val(m.result.awayScore)}`:'—'}</strong><span>home–away score</span></div></div>
+      <section class="card"><div class="card-header"><div><h2>Check before export</h2><p>These are reminders; they do not prevent a partial download.</p></div></div><ul class="warning-list">${warnings.length?warnings.map(w=>`<li class="warning">${esc(w)}</li>`).join(''):'<li class="warning ok">No setup inconsistencies found.</li>'}</ul><p class="footer-note">Unknown / not recorded is a valid coded response. Unassessed table cells remain blank; assessed cells with no events show zero.</p></section>
+      <section class="card"><div class="card-header"><div><h2>Match profile</h2><p>${esc(m.id)} · ${esc(FRAMEWORK_VERSION)}</p></div><button class="button secondary small" data-page="setup">Edit fixture</button></div><div class="kv-grid">
+        ${kv('Observer',m.setup.observer)}${kv('Date and time',[shortDate(m.setup.date),m.setup.time].filter(Boolean).join(' · '))}${kv('League',m.setup.league)}${kv('Home team',m.setup.home.name)}${kv('Away team',m.setup.away.name)}${kv('Rules',rulesLabel(m.setup.genderRules,m.setup.rulesOther))}${kv('Weather',m.setup.weather)}${kv('Surface',m.setup.surface)}${kv('Pitch size',m.setup.pitchSize)}${kv('Competitiveness',m.setup.competitiveness?`Level ${m.setup.competitiveness}`:'Not recorded')}${kv('Context',context)}${kv('Duration',m.result.duration?`${m.result.duration} minutes`:'Not recorded')}${kv('Final score',m.result.homeScore!==''&&m.result.awayScore!==''?`${m.result.homeScore}–${m.result.awayScore}`:'Not recorded')}${kv('Result check',m.result.checked?'Checked with referee / coach':'Not checked')}
+      </div><div class="divider"></div><div class="team-grid">${['home','away'].map(side=>`<div class="team-card"><h3>${esc(m.setup[side].name|| (side==='home'?'Home team':'Away team'))} · squad / on pitch</h3><div class="kv-grid">${CODES.map(c=>kv(CAT[c],`${m.setup[side].squad[c]||'—'} / ${m.setup[side].onPitch[c]||'—'}`)).join('')}</div><p class="footer-note">On-pitch count: ${esc(m.setup[side].point||'point not recorded')}</p></div>`).join('')}</div></section>
+      <section class="card"><div class="card-header"><div><h2>Table 1 · levels of contact</h2><p>Tackle and collision counts by ordered participant pairing and outcome. All 36 directed pairings are available.</p></div></div>${TABLES.table1.map(c=>tableRowsFor(m,c)).join('')}</section>
+      <section class="card"><div class="card-header"><div><h2>Table 2 · injury risk factors</h2><p>“Unable to continue” means the player had to come off because of the incident.</p></div></div>${TABLES.table2.map(c=>tableRowsFor(m,c)).join('')}</section>
+      <section class="card"><div class="card-header"><div><h2>Table 3 · psychological risk factors</h2><p>Verbal abuse towards a player, summarised by source.</p></div></div><details class="table-group"><summary><span>Verbal abuse towards player</span><span class="table-total">${m.assessed.verbal_abuse?`${eventCount(m,'verbal_abuse')} total`:'Not assessed'}</span></summary><div class="table-content">${verbalSummary(m)}</div></details></section>
+      <section class="card"><div class="card-header"><div><h2>Injuries and qualitative notes</h2><p>These detail sheets retain the incident IDs and transcript references.</p></div><div class="button-row"><button class="button secondary small" data-page="code">Edit coding</button></div></div><div class="kv-grid">${kv('Injury records',injuryN)}${kv('Qualitative observations',m.qualitative.length)}${kv('Quick notes',m.quickNotes.length)}${kv('Player-time records',m.setup.players.length)}</div></section>
+      <section class="card"><div class="card-header"><div><h2>Download and backup</h2><p>The Excel workbook has analysis-ready sheets. The JSON file is a full backup including the transcript.</p></div></div><div class="button-row"><button class="button" data-export-xlsx>Download Excel workbook</button><button class="button secondary" data-export-json="${esc(m.id)}">Download JSON backup</button><button class="button secondary" data-export-all-json>Backup all matches</button></div><p class="footer-note">Your browser may ask where to save the file. Export stays on this device; nothing is uploaded.</p></section>
+      <div class="button-row"><button class="button secondary" type="button" data-page="code">← Back to coding</button><button class="button ${m.status==='reviewed'?'secondary':''}" type="button" data-mark-reviewed>${m.status==='reviewed'?'Mark as in progress':'Mark match reviewed'}</button></div>
+      <section class="card glossary"><div class="card-header"><div><h2>Framework definitions</h2><p>Reference definitions from the attached framework.</p></div></div>${glossary()}</section>`;
+  }
+  function kv(k,v) { return `<div class="kv"><span>${esc(k)}</span><strong>${esc(v===null||v===undefined||v===''?'Not recorded':String(v))}</strong></div>`; }
+  function rulesLabel(code, other) {
+    return ({min1:'Minimum 1 female per team',min2:'Minimum 2 females per team',min3:'Minimum 3 females per team',any:'Any gender composition',not_aware:'Not aware',other:other||'Other'})[code]||'Not recorded';
+  }
+  function glossary() {
+    const definitions=[
+      ['Tackle','An attempt to obtain possession of the ball from the opposition by using the feet.'],
+      ['Collision','A forceful coming together of two or more players.'],
+      ['Foul','A call by the referee denoting an unfair act.'],
+      ['Contact','Player-to-player contact that is not classed as a tackle, foul or collision.'],
+      ['Skill error / fall / slip / stumble','A mistake such as a slip, fall or stumble that did not result from external force.'],
+      ['Other risk factor','A risk factor occurring in the match that is not covered by the preceding categories.'],
+      ['Verbal abuse towards a player','Name-calling, constant teasing, sarcasm, racist, sexist or homophobic taunts, threats and gestures.'],
+      ['No treatment','The player continued without treatment.'],
+      ['Treatment required','The player required treatment and was able to continue.'],
+      ['Unable to continue','The player had to come off because of the incident, whether or not treatment was also received.'],
+      ['Hazard','Something with the potential to cause harm.'],
+      ['Risk','The likelihood that harm from a particular hazard is experienced.'],
+      ['Risk assessment','Identify relevant hazards, estimate likelihood and severity, compare risks using a priority matrix, and identify ways to reduce residual risk. Risk cannot always be eliminated.'],
+      ['Severity · None','Very slight or no physical injury, cost or damage to reputation.'],
+      ['Severity · Minor','First aid; the player can continue. Minor cost or damage to reputation.'],
+      ['Severity · Moderate','Medical attention and/or the player is unable to continue. Moderate cost or damage to reputation.'],
+      ['Severity · Severe','Disabling or fatal injury, or significant cost or reputation damage that would impair the FA’s ability to function.'],
+      ['Likelihood · Very likely','Under prevailing conditions, an incident is very difficult to avoid and is anticipated many times a year.'],
+      ['Likelihood · Likely','An incident requires some fault or abnormality; an annual event or several times in a season.'],
+      ['Likelihood · Possible','Several factors need to be present; it could occur occasionally within a five-year period.'],
+      ['Likelihood · Not likely','Only exceptional conditions would lead to an incident; the framework compares it to being struck by lightning in the UK.'],
+      ['Risk matrix · Low','No further action required.'],
+      ['Risk matrix · Medium','Action to reduce residual risk is required.'],
+      ['Risk matrix · Severe','Current risk is unacceptable; the activity should stop immediately.']
+    ];
+    return definitions.map(([title,body])=>`<details><summary>${esc(title)}</summary><p>${esc(body)}</p></details>`).join('');
+  }
+
+  function makeProfileRows(m) {
+    const s=m.setup, r=m.result;
+    const rows=[
+      ['Match ID',m.id],['Framework version',FRAMEWORK_VERSION],['Export date',new Date().toISOString()],
+      ['Observer',s.observer],['Match date',s.date],['Kick-off time',s.time],['League',s.league],
+      ['Home team',s.home.name],['Away team',s.away.name],['Gender composition rules',rulesLabel(s.genderRules,s.rulesOther)],
+      ['Weather conditions',s.weather],['Surface',s.surface],['Pitch size',s.pitchSize],
+      ['Contextual competitiveness level',s.competitiveness],['Local derby',s.context.derby?'Yes':'No'],['Cup match',s.context.cup?'Yes':'No'],
+      ['Semi-final',s.context.semi?'Yes':'No'],['Final',s.context.final?'Yes':'No'],['Other competitiveness context',s.context.other],
+      ['Match duration minutes',numOrBlank(r.duration)],['Home score',numOrBlank(r.homeScore)],['Away score',numOrBlank(r.awayScore)],
+      ['Result checked with referee or coach',r.checked?'Yes':'No'],['Result check note',r.checkedNote]
+    ];
+    for(const side of ['home','away']) {
+      for(const c of CODES) {
+        rows.push([`${side} squad ${c} (${CAT[c]})`,numOrBlank(s[side].squad[c])]);
+        rows.push([`${side} on-pitch ${c} (${CAT[c]})`,numOrBlank(s[side].onPitch[c])]);
+      }
+      rows.push([`${side} on-pitch count reference point`,s[side].point]);
+    }
+    for(const c of Object.keys(CODE_NAMES)) rows.push([`Table coverage: ${CODE_NAMES[c]}`,m.assessed[c]?'Assessed':'Not assessed']);
+    return rows;
+  }
+  function numOrBlank(v) { return v === '' || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v); }
+  function tableExportRows(m,codes,tableName) {
+    const rows=[];
+    for(const code of codes) {
+      const assessed=!!m.assessed[code];
+      const entries=code==='skill_error' ? CODES.map(c=>({actor:null,receiver:c})) : pairRows();
+      for(const pair of entries) {
+        const counts=rowCounts(m,code,pair);
+        rows.push([
+          m.id,tableName,CODE_NAMES[code],code==='skill_error'?'AFFECTED_CATEGORY':'PAIRING',pair.actor||'',pair.receiver||'',code==='skill_error'?pair.receiver:'',
+          assessed?counts.no_treatment:null,assessed?counts.treatment_continue:null,assessed?counts.unable_continue:null,assessed?counts.unknown:null,
+          assessed?Object.values(counts).reduce((a,b)=>a+b,0):null,assessed?'Yes':'No'
+        ]);
+      }
+      const totals=Object.fromEntries(OUTCOMES.map(o=>[o,m.events.filter(e=>(e.codes||[]).includes(code)&&(e.outcome||'unknown')===o).reduce((s,e)=>s+(Number(e.count)||1),0)]));
+      rows.push([m.id,tableName,CODE_NAMES[code],'CATEGORY_TOTAL','','','',assessed?totals.no_treatment:null,assessed?totals.treatment_continue:null,assessed?totals.unable_continue:null,assessed?totals.unknown:null,assessed?Object.values(totals).reduce((a,b)=>a+b,0):null,assessed?'Yes':'No']);
+    }
+    return rows;
+  }
+  function table3Rows(m) {
+    const assessed=!!m.assessed.verbal_abuse;
+    const rows=['player','coach','spectator','unknown'].map(role=>{
+      const events=m.events.filter(e=>(e.codes||[]).includes('verbal_abuse')&&(e.sourceRole||'unknown')===role);
+      return [m.id,role==='unknown'?'Unknown / not recorded':role,CODE_NAMES.verbal_abuse,assessed?events.reduce((s,e)=>s+(Number(e.count)||1),0):null,
+        assessed?'SOURCE_TOTAL':'SOURCE',assessed?'Yes':'No',[...new Set(events.map(e=>e.description).filter(Boolean))].join(' | ')];
+    });
+    const total=eventCount(m,'verbal_abuse');
+    rows.push([m.id,'ALL SOURCES',CODE_NAMES.verbal_abuse,assessed?total:null,'CATEGORY_TOTAL',assessed?'Yes':'No','']);
+    return rows;
+  }
+  function incidentRows(m) {
+    const rows=[];
+    for(const e of m.events) {
+      for(const code of e.codes||[]) {
+        const skill=code==='skill_error';
+        const injury=e.injury||{};
+        rows.push([
+          m.id,e.id,code,CODE_NAMES[code],skill?'':(e.actor||'UNK'),e.receiver||'UNK',skill?(e.receiver||'UNK'):'',
+          code==='verbal_abuse'?'':(OUTCOME_NAMES[e.outcome]||OUTCOME_NAMES.unknown),numOrBlank(e.count||1),e.time,e.transcriptRef,
+          code==='verbal_abuse'?e.sourceRole||'unknown':'',e.description,
+          injury.how||'',injury.bodyPart||'',injury.type||'',injury.treatment||'',injury.cameOff||'',injury.returned||'',injury.hospital||'',injury.description||''
+        ]);
+      }
+    }
+    return rows;
+  }
+  function playerRows(m) {
+    return m.setup.players.map((p,i)=>[m.id,p.id||`P-${String(i+1).padStart(3,'0')}`,p.label,p.side,p.category||'UNK',numOrBlank(p.minutes)]);
+  }
+  function injuryRows(m) {
+    return m.events.filter(e=>e.injury).map(e=>[
+      m.id,e.id,e.time,e.receiver||'UNK',e.injury.how,e.injury.bodyPart,e.injury.type,e.injury.treatment,e.injury.cameOff,e.injury.returned,e.injury.hospital,e.injury.description,e.transcriptRef
+    ]);
+  }
+  function qualitativeRows(m) {
+    const rows=m.qualitative.map(q=>[m.id,q.id,QUAL_TYPES[q.kind]||q.kind,q.time,q.who,q.description,q.context,q.impact,q.transcriptRef]);
+    for(const n of m.quickNotes) rows.push([m.id,n.id,'Quick note',n.time,'',n.text,'','','']);
+    return rows;
+  }
+  function codebookRows(m) {
+    const rows=[
+      ['Participant code','F','Female'],['Participant code','M','Male'],['Participant code','TW','TG Female / transgender woman'],
+      ['Participant code','TM','TG Male / transgender man'],['Participant code','NB','Nonbinary'],['Participant code','UNK','Unknown / not recorded'],
+      ...Object.entries(CODE_NAMES).map(([c,n])=>['Observation code',c,n]),
+      ...Object.entries(OUTCOME_NAMES).map(([c,n])=>['Outcome',c,n]),
+      ['Pairing','Actor on receiver','Directed pairing. All 36 pairings across F, M, TW, TM, NB and UNK are available.'],
+      ['Incident IDs','INC-###','Codes from the same incident share one ID. Batch counts represent a count of identical events under one record ID.'],
+      ['Table 1 definition','Tackle','Attempt to obtain possession of the ball from the opposition by using the feet.'],
+      ['Table 1 definition','Collision','Forceful coming together of two or more players.'],
+      ['Table 2 definition','Foul','Referee call denoting an unfair act.'],
+      ['Table 2 definition','Contact','Player-to-player contact not classed as a tackle, foul or collision.'],
+      ['Table 2 definition','Skill error / fall / slip / stumble','A mistake such as a slip, fall or stumble not resulting from external force.'],
+      ['Table 2 definition','Other','Risk factor not covered by the preceding categories.'],
+      ['Table 3 definition','Verbal abuse towards player','Name-calling, constant teasing, sarcasm, racist, sexist or homophobic taunts, threats and gestures.'],
+      ['Blank / zero','Unassessed category','Blank cells mean not assessed. Zero means assessed and no events recorded.'],
+      ['Frequency','Batch count','Repeated identical events may be entered as a batch count.'],
+      ['Appendix term','Hazard','Something with the potential to cause harm.'],['Appendix term','Risk','The likelihood that harm from a particular hazard is experienced.'],
+      ['Severity','None','Very slight or no physical injury, cost or damage to reputation.'],['Severity','Minor','First aid; the player can continue. Minor cost or damage to reputation.'],
+      ['Severity','Moderate','Medical attention and/or the player is unable to continue. Moderate cost or damage to reputation.'],['Severity','Severe','Disabling or fatal injury, or significant cost or reputation damage that would impair the FA’s ability to function.'],
+      ['Likelihood','Very likely','Very difficult to avoid under prevailing conditions; anticipated many times a year.'],['Likelihood','Likely','Requires some fault or abnormality; an annual event or several times in a season.'],
+      ['Likelihood','Possible','Several factors need to be present; could occur occasionally within a five-year period.'],['Likelihood','Not likely','Only exceptional conditions; the framework compares it to being struck by lightning in the UK.'],
+      ['Risk matrix','Low','No further action required.'],['Risk matrix','Medium','Action to reduce residual risk is required.'],['Risk matrix','Severe','Current risk is unacceptable; the activity should stop immediately.']
+    ];
+    return rows;
+  }
+  function xmlEscape(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+  function columnName(n) { let s=''; while(n){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; }
+  function sheetXml(headers,rows,tabName) {
+    const all=[headers,...rows];
+    const xmlRows=all.map((row,ri)=>{
+      const cells=row.map((v,ci)=>{
+        if(v===null||v===undefined||v==='') return '';
+        const ref=`${columnName(ci+1)}${ri+1}`;
+        if(typeof v==='number'&&Number.isFinite(v)) return `<c r="${ref}"${ri===0?' s="1"':''} t="n"><v>${v}</v></c>`;
+        if(typeof v==='boolean') return `<c r="${ref}"${ri===0?' s="1"':''} t="b"><v>${v?1:0}</v></c>`;
+        return `<c r="${ref}"${ri===0?' s="1"':''} t="inlineStr"><is><t xml:space="preserve">${xmlEscape(v)}</t></is></c>`;
+      }).join('');
+      return `<row r="${ri+1}">${cells}</row>`;
+    }).join('');
+    const maxCol=Math.max(1,headers.length),last=`${columnName(maxCol)}${Math.max(1,all.length)}`;
+    const cols=headers.map((h,i)=>`<col min="${i+1}" max="${i+1}" width="${Math.min(42,Math.max(13,String(h).length+3))}" customWidth="1"/>`).join('');
+    const filter=rows.length?`<autoFilter ref="A1:${columnName(maxCol)}${all.length}"/>`:'';
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetFormatPr defaultRowHeight="18"/><sheetData>${xmlRows}</sheetData>${filter}<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+  }
+  const crcTable=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+  function crc32(bytes){let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&0xff]^(c>>>8);return (c^0xffffffff)>>>0;}
+  function u16(n){return [n&255,(n>>>8)&255];} function u32(n){return [n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255];}
+  function zipStored(entries) {
+    const enc=new TextEncoder(); const local=[]; const central=[]; let offset=0;
+    const d=new Date(); const dosTime=(d.getHours()<<11)|(d.getMinutes()<<5)|Math.floor(d.getSeconds()/2); const dosDate=((Math.max(1980,d.getFullYear())-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+    for(const entry of entries){
+      const name=enc.encode(entry.name);const data=typeof entry.data==='string'?enc.encode(entry.data):entry.data;const crc=crc32(data);
+      const localHeader=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(dosTime),...u16(dosDate),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...name]);
+      local.push(localHeader,data);
+      const centralHeader=new Uint8Array([...u32(0x02014b50),...u16(0x031e),...u16(20),...u16(0x0800),...u16(0),...u16(dosTime),...u16(dosDate),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...name]);
+      central.push(centralHeader);offset+=localHeader.length+data.length;
+    }
+    const centralSize=central.reduce((s,x)=>s+x.length,0);const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(entries.length),...u16(entries.length),...u32(centralSize),...u32(offset),...u16(0)]);
+    return new Blob([...local,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }
+  function workbookBlob(m) {
+    const sheets=[
+      {name:'Match profile',headers:['Field','Value'],rows:makeProfileRows(m)},
+      {name:'Table 1 Contact',headers:['match_id','table','activity','row_type','actor_code','receiver_code','affected_category','no_treatment','treatment_required_continued','unable_to_continue','unknown_not_recorded','total','assessed'],rows:tableExportRows(m,TABLES.table1,'Table 1 · Levels of contact')},
+      {name:'Table 2 Risk factors',headers:['match_id','table','activity','row_type','actor_code','receiver_code','affected_category','no_treatment','treatment_required_continued','unable_to_continue','unknown_not_recorded','total','assessed'],rows:tableExportRows(m,TABLES.table2,'Table 2 · Injury risk factors')},
+      {name:'Table 3 Psychological',headers:['match_id','source_role','activity','frequency','row_type','assessed','descriptions'],rows:table3Rows(m)},
+      {name:'Coded incidents',headers:['match_id','incident_id','code','activity','actor_code','receiver_code','affected_category','outcome','count','match_time','transcript_reference','source_role','description','injury_how','injury_body_part','injury_type','injury_treatment','injury_came_off','injury_returned','injury_hospitalisation','injury_description'],rows:incidentRows(m)},
+      {name:'Player time',headers:['match_id','player_id','anonymous_label','team','category_code','minutes'],rows:playerRows(m)},
+      {name:'Injuries',headers:['match_id','incident_id','match_time','affected_category','how_it_happened','body_part','injury_type','treatment','came_off','later_returned','hospitalisation','description','transcript_reference'],rows:injuryRows(m)},
+      {name:'Qualitative notes',headers:['match_id','observation_id','type','match_time','people_involved','description','context','impact','transcript_reference'],rows:qualitativeRows(m)},
+      {name:'Codebook',headers:['field','code','meaning'],rows:codebookRows(m)}
+    ];
+    const xmlSheets=sheets.map((s,i)=>`<sheet name="${xmlEscape(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('');
+    const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="18000" windowHeight="10000"/></bookViews><sheets>${xmlSheets}</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`;
+    const rels=sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+    const contentTypes=sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('');
+    const entries=[
+      {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${contentTypes}<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`},
+      {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`},
+      {name:'docProps/core.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Mixed Adult Football Observation · ${xmlEscape(displayMatchName(m))}</dc:title><dc:creator>Mixed Adult Football Observer</dc:creator></cp:coreProperties>`},
+      {name:'xl/workbook.xml',data:workbook},
+      {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels}</Relationships>`},
+      {name:'xl/styles.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="10"/><name val="Aptos"/><family val="2"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Aptos"/><family val="2"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF123F4A"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`},
+      ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,data:sheetXml(s.headers,s.rows,s.name)}))
+    ];
+    return zipStored(entries);
+  }
+  function downloadBlob(blob,filename) {
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+  }
+  function filenamePart(s) { return String(s||'match').normalize('NFKD').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,35)||'match'; }
+  function exportExcel(m) {
+    const blob=workbookBlob(m);const d=m.setup.date||localDate();
+    downloadBlob(blob,`MixedFootball-${filenamePart(m.setup.home.name)}-${filenamePart(m.setup.away.name)}-${d}.xlsx`);
+    toast('Excel workbook downloaded.');
+  }
+  function exportJson(m) {
+    const backup={app:'Mixed Adult Football Observer',version:1,exportedAt:new Date().toISOString(),match:m};
+    downloadBlob(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),`MixedFootball-${filenamePart(m.setup.home.name)}-${filenamePart(m.setup.away.name)}-${m.setup.date||localDate()}.json`);
+    toast('JSON backup downloaded.');
+  }
+  function exportAllJson() {
+    const backup={app:'Mixed Adult Football Observer',version:1,exportedAt:new Date().toISOString(),matches:model.matches};
+    downloadBlob(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),`MixedFootball-all-matches-${localDate()}.json`);
+    toast('All-match backup downloaded.');
+  }
+
+  function setPage(next) {
+    if (activeMatch()) activeMatch().currentPage=next;
+    page=next;
+    markChanged();
+    render();
+  }
+  function createMatchDraft() {
+    const m=makeMatch();m.currentPage='setup';model.matches.push(m);model.activeMatchId=m.id;page='setup';currentEditing=null;currentQualEditing=null;markChanged();render();
+    return {status:'draft_created',section:'fixture_setup'};
+  }
+  function registerWebMCP() {
+    const context=document.modelContext;
+    if(!context?.registerTool)return;
+    webmcpLifecycle=new AbortController();
+    try {
+      Promise.resolve(context.registerTool({
+        name:'create_match_draft',title:'Create match draft',
+        description:'Create a blank local match and open fixture setup. No transcript or observation data is returned or sent.',
+        inputSchema:{type:'object',properties:{},additionalProperties:false},
+        annotations:{readOnlyHint:false,untrustedContentHint:false},
+        async execute(){const result=createMatchDraft();return result;}
+      },{signal:webmcpLifecycle.signal})).catch(err=>console.info('WebMCP tool registration unavailable.',err));
+    } catch(err) { console.info('WebMCP tool registration unavailable.',err); }
+  }
+  function refreshEventFormVisibility() {
+    const form=$('#event-form'); if(!form) return;
+    const codes=$$('input[name="codes"]:checked',form).map(x=>x.value);
+    const psych=codes.includes('verbal_abuse');
+    const skill=codes.length===1&&codes[0]==='skill_error';
+    $('#actor-field',form)?.classList.toggle('hidden',psych||skill);
+    $('#receiver-field',form)?.classList.toggle('hidden',psych);
+    $('#source-field',form)?.classList.toggle('hidden',!psych);
+    $('#outcome-field',form)?.classList.toggle('hidden',psych);
+    $('#injury-fields',form)?.classList.toggle('hidden',!$('#has-injury',form)?.checked);
+  }
+  function showSearchResults(query) {
+    const m=activeMatch();const root=$('#search-results');if(!root||!m)return;
+    const q=String(query||'').trim().toLowerCase();
+    if(!q){root.innerHTML='';return;}
+    const text=m.transcript||'';let pos=0;const hits=[];
+    while(hits.length<8){const i=text.toLowerCase().indexOf(q,pos);if(i<0)break;const start=Math.max(0,i-55),end=Math.min(text.length,i+q.length+95);hits.push({i,end,snippet:text.slice(start,end).replace(/\s+/g,' ')});pos=i+q.length;}
+    root.innerHTML=hits.length?hits.map(h=>`<button class="search-hit" type="button" data-search-index="${h.i}" data-search-end="${h.end}"><strong>${esc(h.snippet.slice(0,110))}</strong>${h.snippet.length>110?'…':''}</button>`).join(''):`<p class="footer-note">No matching transcript text found.</p>`;
+  }
+  function importBackup(file) {
+    if(!file)return;
+    file.text().then(raw=>{
+      const data=JSON.parse(raw);let imported=Array.isArray(data.matches)?data.matches:(data.match?[data.match]:[data]);
+      if(!imported.length)throw new Error('No match records found.');
+      const loaded=[];
+      for(let m of imported){m=ensureShape(m);const originalId=m.id;if(model.matches.some(x=>x.id===m.id)){m={...m,id:`MAF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,5).toUpperCase()}`,sourceMatchId:originalId};}m.status ||= 'draft';m.currentPage='setup';m.updatedAt=new Date().toISOString();model.matches.push(m);loaded.push(m);}
+      model.activeMatchId=loaded[0].id;page='setup';currentEditing=null;currentQualEditing=null;markChanged();render();toast(`${loaded.length} match ${loaded.length===1?'backup':'backups'} imported.`);
+    }).catch(err=>{console.error(err);toast(`Could not import backup: ${err.message||'invalid file'}`);}).finally(()=>{const input=$('#import-json');if(input)input.value='';});
+  }
+  function nextIncidentId(m) { const id=`INC-${String(m.nextIncident||1).padStart(3,'0')}`;m.nextIncident=(Number(m.nextIncident)||1)+1;return id; }
+  function nextNoteId(prefix) { return `${prefix}-${Date.now().toString(36).toUpperCase()}`; }
+  function validateCodes(codes) {
+    if(!codes.length)return 'Choose at least one observation code.';
+    const psych=codes.includes('verbal_abuse');
+    if(psych&&codes.length>1)return 'Verbal abuse is recorded as its own psychological observation.';
+    if(codes.includes('contact')&&['tackle','collision','foul'].some(c=>codes.includes(c)))return 'Contact cannot be combined with tackle, collision or foul; the framework defines it as contact outside those categories.';
+    if(codes.includes('skill_error')&&codes.length>1)return 'A skill error, fall, slip or stumble is coded without external force, so give it its own incident record.';
+    if(codes.includes('other')&&['foul','contact','skill_error'].some(c=>codes.includes(c)))return 'Use “Other risk factor” only when the event is not covered by the other Table 2 categories.';
+    return '';
+  }
+  function submitEvent(form) {
+    const m=activeMatch();const fd=new FormData(form);const codes=fd.getAll('codes');
+    const problem=validateCodes(codes);if(problem){toast(problem);return;}
+    const count=Math.floor(Number(fd.get('count'))||1);if(count<1){toast('Count must be at least one.');return;}
+    const verbal=codes.includes('verbal_abuse');const skill=codes.length===1&&codes[0]==='skill_error';
+    const old=currentEditing?m.events.find(x=>x.id===currentEditing):null;
+    const hasInjury=fd.get('hasInjury')==='on';
+    const injury=hasInjury?{
+      how:fd.get('injuryHow')||'',bodyPart:fd.get('injuryBodyPart')||'',type:fd.get('injuryType')||'',treatment:fd.get('injuryTreatment')||'',
+      cameOff:fd.get('injuryCameOff')||'unknown',returned:fd.get('injuryReturned')||'unknown',hospital:fd.get('injuryHospital')||'unknown',description:fd.get('injuryDescription')||''
+    }:null;
+    const event={
+      id:old?.id||nextIncidentId(m),codes,actor:verbal||skill?'':(fd.get('actor')||'UNK'),receiver:verbal?'':(fd.get('receiver')||'UNK'),
+      outcome:verbal?'':(fd.get('outcome')||'unknown'),count,time:fd.get('time')||'',transcriptRef:fd.get('transcriptRef')||'',
+      description:fd.get('description')||'',sourceRole:verbal?(fd.get('sourceRole')||'unknown'):'',injury
+    };
+    if(old){m.events=m.events.map(x=>x.id===old.id?event:x);}else m.events.push(event);
+    for(const code of codes)m.assessed[code]=true;
+    currentEditing=null;markChanged();render();toast(old?'Incident updated.':`Added ${event.id}.`);
+    setTimeout(()=>$('#event-form')?.scrollIntoView({behavior:'smooth',block:'start'}),60);
+  }
+  function submitQual(form) {
+    const m=activeMatch();const fd=new FormData(form);const old=currentQualEditing?m.qualitative.find(x=>x.id===currentQualEditing):null;
+    const q={id:old?.id||nextNoteId('OBS'),kind:fd.get('kind'),time:fd.get('time')||'',who:fd.get('who')||'',transcriptRef:fd.get('transcriptRef')||'',description:fd.get('description')||'',context:fd.get('context')||'',impact:fd.get('impact')||''};
+    if(old)m.qualitative=m.qualitative.map(x=>x.id===old.id?q:x);else m.qualitative.push(q);
+    currentQualEditing=null;markChanged();render();toast(old?'Observation updated.':'Qualitative observation added.');
+  }
+  function eventFormSelected(form) { return $$('input[name="codes"]:checked',form).map(el=>el.value); }
+
+  document.addEventListener('click', async (event) => {
+    const target=event.target.closest('button,[data-page]');if(!target)return;
+    if(target.id==='home-button'){model.activeMatchId=null;page='home';currentEditing=null;currentQualEditing=null;render();return;}
+    if(target.dataset.page){const next=target.dataset.page;if(next==='home'){model.activeMatchId=null;page='home';render();return;}setPage(next);return;}
+    if(target.hasAttribute('data-create-match')){createMatchDraft();return;}
+    if(target.dataset.openMatch){model.activeMatchId=target.dataset.openMatch;const m=activeMatch();page=m?.currentPage||'setup';render();return;}
+    if(target.dataset.deleteMatch){const m=model.matches.find(x=>x.id===target.dataset.deleteMatch);if(m&&confirm(`Delete ${displayMatchName(m)} and all its local observations?`)){model.matches=model.matches.filter(x=>x.id!==m.id);if(model.activeMatchId===m.id)model.activeMatchId=null;page='home';markChanged();render();toast('Match deleted from this browser.');}return;}
+    if(target.dataset.exportJson){const m=model.matches.find(x=>x.id===target.dataset.exportJson);if(m)exportJson(m);return;}
+    if(target.hasAttribute('data-export-all-json')){exportAllJson();return;}
+    if(target.hasAttribute('data-export-xlsx')){const m=activeMatch();if(m)exportExcel(m);return;}
+    if(target.hasAttribute('data-mark-reviewed')){const m=activeMatch();m.status=m.status==='reviewed'?'draft':'reviewed';markChanged();render();toast(m.status==='reviewed'?'Match marked reviewed.':'Match reopened.');return;}
+    if(target.hasAttribute('data-add-player')){const m=activeMatch();m.setup.players.push({id:`P-${Date.now().toString(36).toUpperCase()}`,label:'',side:'home',category:'',minutes:''});markChanged();render();return;}
+    if(target.dataset.removePlayer){const m=activeMatch();m.setup.players=m.setup.players.filter(p=>p.id!==target.dataset.removePlayer);markChanged();render();return;}
+    if(target.dataset.assessed){const m=activeMatch();m.assessed[target.dataset.assessed]=!m.assessed[target.dataset.assessed];markChanged();render();return;}
+    if(target.hasAttribute('data-clock-toggle')){
+      const m=activeMatch(),c=m.clock;
+      if(c.runningSince){c.elapsedMs=elapsedMs(m);c.runningSince=null;}else{c.runningSince=Date.now();c.started=true;}
+      markChanged();render();return;
+    }
+    if(target.hasAttribute('data-period-next')){const m=activeMatch();m.clock.elapsedMs=elapsedMs(m);m.clock.runningSince=null;m.clock.period=(Number(m.clock.period)||1)+1;m.clock.started=true;markChanged();render();toast(`Period ${m.clock.period}. Start the clock when ready.`);return;}
+    if(target.hasAttribute('data-add-quick-note')){const m=activeMatch(),input=$('#quick-note');const text=(input?.value||'').trim();if(!text){toast('Write a short note first.');return;}m.quickNotes.push({id:nextNoteId('QUICK'),time:currentMatchTime(m),text});if(input)input.value='';markChanged();render();toast('Timed note saved.');return;}
+    if(target.dataset.deleteQuick){const m=activeMatch();m.quickNotes=m.quickNotes.filter(n=>n.id!==target.dataset.deleteQuick);markChanged();render();return;}
+    if(target.dataset.editEvent){currentEditing=target.dataset.editEvent;render();setTimeout(()=>$('#event-form')?.scrollIntoView({behavior:'smooth',block:'start'}),60);return;}
+    if(target.dataset.deleteEvent){const m=activeMatch();if(confirm(`Delete incident ${target.dataset.deleteEvent}?`)){m.events=m.events.filter(e=>e.id!==target.dataset.deleteEvent);if(currentEditing===target.dataset.deleteEvent)currentEditing=null;markChanged();render();toast('Incident deleted.');}return;}
+    if(target.hasAttribute('data-cancel-edit')){currentEditing=null;render();return;}
+    if(target.hasAttribute('data-add-excerpt')){const transcript=$('#transcript-text');const start=transcript?.selectionStart||0,end=transcript?.selectionEnd||0;const excerpt=start!==end?transcript.value.slice(start,end):'';if(!excerpt){toast('Select a passage in the transcript first.');return;}const desc=$('#event-description');desc.value=[desc.value.trim(),excerpt].filter(Boolean).join('\n');toast('Selected passage added to the incident description.');return;}
+    if(target.hasAttribute('data-clear-transcript')){if(confirm('Clear the transcript text from this match?')){const m=activeMatch();m.transcript='';markChanged();render();}return;}
+    if(target.dataset.searchIndex){const area=$('#transcript-text'),start=Number(target.dataset.searchIndex),end=Number(target.dataset.searchEnd);area?.focus();area?.setSelectionRange(start,end);if(area)area.scrollTop=Math.max(0,(area.value.slice(0,start).match(/\n/g)||[]).length*18-70);return;}
+    if(target.dataset.editQual){currentQualEditing=target.dataset.editQual;render();setTimeout(()=>$('#qual-form')?.scrollIntoView({behavior:'smooth',block:'start'}),60);return;}
+    if(target.dataset.deleteQual){const m=activeMatch();if(confirm('Delete this qualitative observation?')){m.qualitative=m.qualitative.filter(q=>q.id!==target.dataset.deleteQual);markChanged();render();}return;}
+    if(target.hasAttribute('data-cancel-qual')){currentQualEditing=null;render();return;}
+    if(target.hasAttribute('data-open-glossary')){$('#coding-glossary')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
+  });
+
+  document.addEventListener('input',(event)=>{
+    const el=event.target;const m=activeMatch();if(!m)return;
+    if(el.dataset.bind){setPath(m,el.dataset.bind,el.value);markChanged();return;}
+    if(el.dataset.playerField){const row=el.closest('[data-player]');const p=m.setup.players.find(x=>x.id===row?.dataset.player);if(p){p[el.dataset.playerField]=el.value;markChanged();}return;}
+    if(el.id==='transcript-text'){m.transcript=el.value;markChanged();return;}
+    if(el.id==='transcript-search'){showSearchResults(el.value);return;}
+    if(el.id==='quick-note'){m.quickDraft=el.value;markChanged();return;}
+    if(el.name==='codes'&&el.form?.id==='event-form'){refreshEventFormVisibility();return;}
+    if(el.id==='has-injury'){refreshEventFormVisibility();return;}
+  });
+  document.addEventListener('change',(event)=>{
+    const el=event.target;const m=activeMatch();if(!m)return;
+    if(el.dataset.bind){setPath(m,el.dataset.bind,el.value);markChanged();return;}
+    if(el.dataset.radio){setPath(m,el.dataset.radio,el.value);markChanged();return;}
+    if(el.dataset.check){setPath(m,el.dataset.check,el.checked);markChanged();return;}
+    if(el.dataset.playerField){const row=el.closest('[data-player]');const p=m.setup.players.find(x=>x.id===row?.dataset.player);if(p){p[el.dataset.playerField]=el.value;markChanged();}return;}
+    if(el.id==='transcript-file'&&el.files?.[0]){const file=el.files[0];file.text().then(text=>{m.transcript=text;markChanged();render();toast('Transcript imported.');}).catch(()=>toast('Could not read that text file.'));el.value='';return;}
+    if(el.id==='import-json'&&el.files?.[0]){importBackup(el.files[0]);return;}
+    if(el.id==='has-injury'){refreshEventFormVisibility();return;}
+    if(el.name==='codes'&&el.form?.id==='event-form'){refreshEventFormVisibility();return;}
+  });
+  document.addEventListener('submit',(event)=>{
+    if(event.target.id==='event-form'){event.preventDefault();submitEvent(event.target);return;}
+    if(event.target.id==='qual-form'){event.preventDefault();submitQual(event.target);return;}
+  });
+
+  async function init() {
+    try { database=await openDb(); } catch(err) { console.warn('IndexedDB unavailable; trying local browser storage.',err);database=null; }
+    try {
+      const saved=await dbRead();
+      if(saved&&Array.isArray(saved.matches)){model=saved;model.matches.forEach(ensureShape);page=activeMatch()?.currentPage||'home';}
+      setSaveStatus('Saved on this device');
+    } catch(err) { console.error(err);setSaveStatus('Local storage unavailable',true); }
+    render();
+    registerWebMCP();
+    tickTimer=setInterval(()=>{const m=activeMatch();const display=$('#clock-display');if(m&&display){display.textContent=formatClock(elapsedMs(m));const meta=$('#clock-meta');if(meta)meta.textContent=`Period ${m.clock.period||1} · ${m.clock.runningSince?'Clock running':'Clock paused'}`;}},1000);
+  }
+  window.addEventListener('pagehide',()=>{webmcpLifecycle?.abort();if(saveTimer){clearTimeout(saveTimer);dbWrite(model).catch(()=>{});}});
+  init();
+})();
+
+  </script>
+</body>
+</html>
