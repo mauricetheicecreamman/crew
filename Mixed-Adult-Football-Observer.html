@@ -809,7 +809,12 @@ textarea { min-height: 118px; resize: vertical; line-height: 1.45; }
     ];
     return rows;
   }
-  function xmlEscape(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+  function xmlEscape(v) {
+    return String(v??'')
+      .replace(/\r\n?/g,'\n')
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  }
   function columnName(n) { let s=''; while(n){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; }
   function sheetXml(headers,rows,tabName) {
     const all=[headers,...rows];
@@ -826,7 +831,7 @@ textarea { min-height: 118px; resize: vertical; line-height: 1.45; }
     const maxCol=Math.max(1,headers.length),last=`${columnName(maxCol)}${Math.max(1,all.length)}`;
     const cols=headers.map((h,i)=>`<col min="${i+1}" max="${i+1}" width="${Math.min(42,Math.max(13,String(h).length+3))}" customWidth="1"/>`).join('');
     const filter=rows.length?`<autoFilter ref="A1:${columnName(maxCol)}${all.length}"/>`:'';
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetFormatPr defaultRowHeight="18"/><sheetData>${xmlRows}</sheetData>${filter}<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols>${cols}</cols><sheetData>${xmlRows}</sheetData>${filter}<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
   }
   const crcTable=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
   function crc32(bytes){let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&0xff]^(c>>>8);return (c^0xffffffff)>>>0;}
