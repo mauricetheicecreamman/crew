@@ -1029,13 +1029,14 @@ textarea { min-height: 118px; resize: vertical; line-height: 1.45; }
     if(el.id==='has-injury'){refreshEventFormVisibility();return;}
   });
   document.addEventListener('change',(event)=>{
-    const el=event.target;const m=activeMatch();if(!m)return;
+    const el=event.target;
+    if(el.id==='import-json'&&el.files?.[0]){importBackup(el.files[0]);return;}
+    const m=activeMatch();if(!m)return;
     if(el.dataset.bind){setPath(m,el.dataset.bind,el.value);markChanged();return;}
     if(el.dataset.radio){setPath(m,el.dataset.radio,el.value);markChanged();return;}
     if(el.dataset.check){setPath(m,el.dataset.check,el.checked);markChanged();return;}
     if(el.dataset.playerField){const row=el.closest('[data-player]');const p=m.setup.players.find(x=>x.id===row?.dataset.player);if(p){p[el.dataset.playerField]=el.value;markChanged();}return;}
     if(el.id==='transcript-file'&&el.files?.[0]){const file=el.files[0];file.text().then(text=>{m.transcript=text;markChanged();render();toast('Transcript imported.');}).catch(()=>toast('Could not read that text file.'));el.value='';return;}
-    if(el.id==='import-json'&&el.files?.[0]){importBackup(el.files[0]);return;}
     if(el.id==='has-injury'){refreshEventFormVisibility();return;}
     if(el.name==='codes'&&el.form?.id==='event-form'){refreshEventFormVisibility();return;}
   });
